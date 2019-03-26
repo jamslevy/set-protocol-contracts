@@ -13,18 +13,11 @@ import { getWeb3 } from '@utils/web3Helper';
 import { getScenarioData } from './scenarioData';
 
 import {
-  BidTxn,
-  BTCETHMultipleRebalanceWrapper,
   DataOutput,
   FullRebalanceProgram,
-  GeneralRebalancingData,
-  InitializationParameters,
-  IssuanceTxn,
-  IssueRedeemSchedule,
-  RedemptionTxn,
-  SingleRebalanceCycleScenario,
-  TokenPrices
-} from './btcEthMultipleRebalanceHelper';
+} from './types';
+
+import { BTCETHMultipleRebalanceWrapper } from './btcEthMultipleRebalanceHelper';
 
 BigNumberSetup.configure();
 ChaiSetup.configure();
@@ -57,8 +50,6 @@ contract('Multiple Rebalance BTC-ETH 50/50', accounts => {
     await blockchain.saveSnapshotAsync();
 
     scenarioData = getScenarioData(accounts);
-
-    console.log("SCenaro data", JSON.stringify(scenarioData));
 
     btcEthRebalanceWrapper = new BTCETHMultipleRebalanceWrapper(accounts, scenarioData);
   });
