@@ -1,6 +1,43 @@
 import { Address } from 'set-protocol-utils';
 import { BigNumber } from 'set-protocol-utils';
 
+export interface AssetScenario {
+  managerConfig: ManagerConfig;
+  rebalancingSetConfig: RebalancingSetConfig;
+  priceSchedule: PriceSchedule;
+  issuanceSchedule: IssueRedeemSchedule;
+  biddingSchedule: BiddingSchedule;
+}
+
+export interface ManagerConfig {
+  btcMultiplier: BigNumber;
+  ethMultiplier: BigNumber;
+  lowerAllocationBound: BigNumber;
+  upperAllocationBound: BigNumber;
+  auctionTimeToPivot: BigNumber;
+}
+
+export interface RebalancingSetConfig {
+  unitShares: BigNumber;
+  initialNaturalUnit: BigNumber;
+  rebalanceInterval: BigNumber;
+  proposalPeriod: BigNumber;
+  initialTokenPrices: TokenPrices;
+  initialSetIssueQuantity: BigNumber;
+  initialSetUnits: BigNumber[];
+  initialSetNaturalUnit: BigNumber;
+}
+
+export interface PriceSchedule {
+  assetOne: BigNumber[];
+  assetTwo: BigNumber[];
+}
+
+export interface BiddingSchedule {
+  percentRemainingToBid: number[];
+  secondsFromFairValue: BigNumber[];
+}
+
 export interface UserAccountData {
   bidderOne: Address;
   bidderTwo: Address;

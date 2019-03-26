@@ -1,6 +1,7 @@
 
+import { AssetScenario } from './types';
 
 
-const INPUTS = {
+const BTCETH5050: AssetScenario  = {
 
 };

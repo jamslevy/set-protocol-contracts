@@ -9,6 +9,9 @@ export default {
   // PROTOCOL
   PRICE_DIVISOR: new BigNumber(1000),
 
+  // Price Feed
+  PRICE_FEED_TRUNCATION: new BigNumber(10 ** 18),
+
   // BASE_SET
   SET_FULL_TOKEN_UNITS: new BigNumber(10 ** 18),
 
@@ -22,7 +25,7 @@ export default {
   // MANAGER
     DEFAULT_COLLATERAL_NATURAL_UNIT: new BigNumber(10 ** 10),
     WETH_DOMINANT_COLLATERAL_NATURAL_UNIT: new BigNumber(10 ** 12),
-  // ASSET: {
+  // ASSET
   WBTC: {
     DECIMALS: 8,
     FULL_UNIT: new BigNumber(10 ** 8),
