@@ -5,7 +5,7 @@ export interface AssetScenario {
   managerConfig: ManagerConfig;
   rebalancingSetConfig: RebalancingSetConfig;
   priceSchedule: PriceSchedule;
-  issuanceSchedule: IssueRedeemSchedule;
+  issuanceSchedule: IssuanceSchedule;
   biddingSchedule: BiddingSchedule;
 }
 
@@ -19,13 +19,18 @@ export interface ManagerConfig {
 
 export interface RebalancingSetConfig {
   unitShares: BigNumber;
-  initialNaturalUnit: BigNumber;
+  naturalUnit: BigNumber;
   rebalanceInterval: BigNumber;
   proposalPeriod: BigNumber;
   initialTokenPrices: TokenPrices;
   initialSetIssueQuantity: BigNumber;
   initialSetUnits: BigNumber[];
   initialSetNaturalUnit: BigNumber;
+}
+
+export interface IssuanceSchedule {
+  issuances: IssuanceTxn[];
+  redemptions: RedemptionTxn[];
 }
 
 export interface PriceSchedule {
@@ -104,11 +109,6 @@ export interface RedemptionTxn {
   amount: BigNumber;
 }
 
-export interface IssueRedeemSchedule {
-  issuances: IssuanceTxn[];
-  redemptions: RedemptionTxn[];
-}
-
 export interface TokenPrices {
   WBTCPrice: BigNumber;
   WETHPrice: BigNumber;
@@ -145,7 +145,7 @@ export interface GeneralRebalancingData {
 }
 
 export interface SingleRebalanceCycleScenario {
-  issueRedeemSchedule: IssueRedeemSchedule;
+  issueRedeemSchedule: IssuanceSchedule;
   priceUpdate: TokenPrices;
   biddingSchedule: BidTxn[];
 }

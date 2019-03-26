@@ -35,7 +35,7 @@ import {
   UserTokenBalances,
   IssuanceTxn,
   RedemptionTxn,
-  IssueRedeemSchedule,
+  IssuanceSchedule,
   TokenPrices,
   BidTxn,
   SingleRebalanceCycleScenario,
@@ -264,7 +264,7 @@ export class BTCETHMultipleRebalanceWrapper {
       const scenario = scenarios[i];
 
       // Issue and Redeem Sets
-      await this._executeIssueRedeemScheduleAsync(scenario.issueRedeemSchedule);
+      await this._executeIssuanceScheduleAsync(scenario.issueRedeemSchedule);
 
       // Run Proposal (change prices) and transtion to rebalance
       await this._proposeAndTransitionToRebalanceAsync(scenario.priceUpdate);
@@ -453,8 +453,8 @@ export class BTCETHMultipleRebalanceWrapper {
     await Promise.all(approveWETHPromises);
   }
 
-  private async _executeIssueRedeemScheduleAsync(
-    scehdule: IssueRedeemSchedule,
+  private async _executeIssuanceScheduleAsync(
+    scehdule: IssuanceSchedule,
   ): Promise<void> {
     // Execute issuances
     const issuancePromises = _.map(
