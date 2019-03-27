@@ -6,12 +6,12 @@ export interface AssetScenario {
   rebalancingSetConfig: RebalancingSetConfig;
   priceSchedule: PriceSchedule;
   issuanceSchedule: IssuanceSchedule;
-  biddingSchedule: BiddingSchedule;
+  biddingSchedule: (BidTxn[])[];
 }
 
 export interface ManagerConfig {
-  btcMultiplier: BigNumber;
-  ethMultiplier: BigNumber;
+  assetOneMultiplier: BigNumber;
+  assetTwoMultiplier: BigNumber;
   lowerAllocationBound: BigNumber;
   upperAllocationBound: BigNumber;
   auctionTimeToPivot: BigNumber;
@@ -29,8 +29,13 @@ export interface RebalancingSetConfig {
 }
 
 export interface IssuanceSchedule {
-  issuances: IssuanceTxn[];
-  redemptions: RedemptionTxn[];
+  issuances: (IssuanceTxn[])[];
+  redemptions: (IssuanceTxn[])[];
+}
+
+export interface IssuanceTxn {
+  sender: number;  // Account number
+  amount: BigNumber;
 }
 
 export interface PriceSchedule {
@@ -38,9 +43,10 @@ export interface PriceSchedule {
   assetTwo: BigNumber[];
 }
 
-export interface BiddingSchedule {
-  percentRemainingToBid: number[];
-  secondsFromFairValue: BigNumber[];
+export interface BidTxn {
+  senders: number;
+  percentRemainingToBid: number;
+  secondsFromFairValue: BigNumber;
 }
 
 export interface UserAccountData {
@@ -99,16 +105,6 @@ export interface GasProfiler {
   settleRebalance?: BigNumber;
 }
 
-export interface IssuanceTxn {
-  sender: Address;
-  amount: BigNumber;
-}
-
-export interface RedemptionTxn {
-  sender: Address;
-  amount: BigNumber;
-}
-
 export interface TokenPrices {
   WBTCPrice: BigNumber;
   WETHPrice: BigNumber;
@@ -118,6 +114,16 @@ export interface BidTxn {
   sender: Address;
   amount: BigNumber;
   price: BigNumber;
+}
+
+export interface IssueTxn {
+  sender: Address;
+  amount: BigNumber;
+}
+
+export interface RedemptionTxn {
+  sender: Address;
+  amount: BigNumber;
 }
 
 export interface InitializationParameters {

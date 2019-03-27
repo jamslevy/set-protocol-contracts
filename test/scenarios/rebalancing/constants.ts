@@ -5,6 +5,7 @@ const SECONDS_PER_DAY = new BigNumber(86400);
 export default {
   // TIME: {
   SECONDS_PER_DAY: SECONDS_PER_DAY,
+  THIRTY_DAYS_IN_SECONDS: SECONDS_PER_DAY.mul(30),
 
   // PROTOCOL
   PRICE_DIVISOR: new BigNumber(1000),

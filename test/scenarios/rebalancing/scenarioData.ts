@@ -6,7 +6,8 @@ import {
   BidTxn,
   GeneralRebalancingData,
   InitializationParameters,
-  IssuanceTxn,
+  IssueTxn,
+  RedemptionTxn,
   IssuanceSchedule,
   FullRebalanceProgram,
   RedemptionTxn,
@@ -69,7 +70,7 @@ function getCycleData(accounts): SingleRebalanceCycleScenario[] {
   };
 
     // Rebalancing Cycle 2
-  const issueTxnOne: IssuanceTxn = {
+  const issueTxnOne: IssueTxn = {
     sender: accounts[5],
     amount: new BigNumber(10 ** 21),
   };
