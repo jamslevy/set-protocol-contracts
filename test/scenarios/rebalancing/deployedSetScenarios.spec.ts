@@ -14,6 +14,7 @@ import { getScenarioData } from './scenarioData';
 import { BITETH_BTC_DOMINANT } from './inputs';
 
 import {
+  AssetScenario,
   DataOutput,
   FullRebalanceProgram,
 } from './types';
@@ -33,7 +34,7 @@ const blockchain = new Blockchain(web3);
 contract('Multiple Rebalance BTC-ETH 50/50', accounts => {
 
   let rebalanceScenariosWrapper: RebalanceScenariosWrapper;
-  let scenarioData: FullRebalanceProgram;
+  let scenarioData: AssetScenario;
 
   before(async () => {
     ABIDecoder.addABI(Core.abi);
@@ -50,7 +51,7 @@ contract('Multiple Rebalance BTC-ETH 50/50', accounts => {
   beforeEach(async () => {
     await blockchain.saveSnapshotAsync();
 
-    scenarioData = getScenarioData(accounts);
+    scenarioData = BITETH_BTC_DOMINANT;
 
     rebalanceScenariosWrapper = new RebalanceScenariosWrapper(accounts, scenarioData);
   });

@@ -2,6 +2,9 @@ import { Address } from 'set-protocol-utils';
 import { BigNumber } from 'set-protocol-utils';
 
 export interface AssetScenario {
+  scenarioCount: number;
+  assetOne: string;
+  assetTwo: string;
   managerConfig: ManagerConfig;
   rebalancingSetConfig: RebalancingSetConfig;
   priceSchedule: PriceSchedule;

@@ -9,7 +9,7 @@ import ChaiSetup from '@utils/chaiSetup';
 import { BigNumberSetup } from '@utils/bigNumberSetup';
 import {
   BTCETHRebalancingManagerContract,
-  CoreMockContract,
+  CoreContract,
   LinearAuctionPriceCurveContract,
   MedianContract,
   RebalanceAuctionModuleContract,
@@ -33,8 +33,7 @@ import {
   UserAccountData,
   TokenBalances,
   UserTokenBalances,
-  IssuanceTxn,
-  IssuanceSchedule,
+  NewIssuanceTxn,
   TokenPrices,
   BidTxn,
   SingleRebalanceCycleScenario,
@@ -54,6 +53,8 @@ const blockchain = new Blockchain(web3);
 const { SetProtocolTestUtils: SetTestUtils, SetProtocolUtils: SetUtils } = setProtocolUtils;
 const web3Utils = new Web3Utils(web3);
 
+const LARGE_QUANTITY_COMPONENT = new BigNumber(10 ** 30);
+
 export class RebalanceScenariosWrapper {
   private _accounts: UserAccountData;
   private _rebalanceProgram: AssetScenario;
@@ -67,7 +68,7 @@ export class RebalanceScenariosWrapper {
 
   private _rebalancingSetToken: RebalancingSetTokenContract;
 
-  private _coreMock: CoreMockContract;
+  private _core: CoreContract;
   private _transferProxy: TransferProxyContract;
   private _vault: VaultContract;
   private _rebalanceAuctionModule: RebalanceAuctionModuleContract;
@@ -76,17 +77,15 @@ export class RebalanceScenariosWrapper {
   private _rebalancingFactory: RebalancingSetTokenFactoryContract;
   private _linearAuctionPriceCurve: LinearAuctionPriceCurveContract;
   private _btcethRebalancingManager: BTCETHRebalancingManagerContract;
-  private _btcMedianizer: MedianContract;
-  private _ethMedianizer: MedianContract;
+  private _assetOneMedianizer: MedianContract;
+  private _assetTwoMedianizer: MedianContract;
 
-  private _wrappedBTC: StandardTokenMockContract;
-  private _wrappedETH: WethMockContract;
   private _initialBtcEthSet: SetTokenContract;
 
-  constructor(otherAccounts: Address[], rebalanceProgram: AssetScenario) {
-    this._contractOwnerAddress = otherAccounts[0];
+  constructor(accounts: Address[], rebalanceProgram: AssetScenario) {
+    this._contractOwnerAddress = accounts[0];
     this._rebalanceProgram = rebalanceProgram;
-    this._accounts = this._createAccountPersonalitiesAsync(otherAccounts);
+    this._accounts = this._createAccountPersonalitiesAsync(accounts);
 
     this._coreWrapper = new CoreWrapper(this._contractOwnerAddress, this._contractOwnerAddress);
     this._erc20Wrapper = new ERC20Wrapper(this._contractOwnerAddress);
@@ -103,50 +102,80 @@ export class RebalanceScenariosWrapper {
 
   public async runFullRebalanceProgram(): Promise<void> {
     await this.initialize();
-    await this.runRebalanceScenarios();
+    // await this.runRebalanceScenarios();
   }
 
   public async initialize(): Promise<void> {
-    // Issue Rebalancing Sets using _contractOwnerAddress tokens and distrubuted to owner group
-    await this._distributeComponentsToIssuers();
+    const { issuerAccounts, bidderAccounts, assetOne, assetTwo } = this._rebalancingProgram;
 
-    await this._mintInitialSets();
+    const issuerAccounts: Address[] = _.map(issuerAccounts, accountNumber => accounts[accountNumber]);
+    const bidderAccounts: Address[] = _.map(bidderAccounts, accountNumber => accounts[accountNumber]);
+    const recipients = _.union([issuerAccounts, bidderAccounts]);
+
+    const assetOneAddress = await findDependency(assetOne)
+    const assetOneAddress = await findDependency(assetTwo)
+    const components = this._erc20Wrapper.retrieveTokenInstancesAsync([assetOneAddress, assetOneAddress]);
+
+    await this._distributeComponents(components, recipients);
+
+    // Issue Rebalancing Sets using _contractOwnerAddress tokens and distrubuted to owner group
+    // await this._mintInitialSets();
   }
 
-  public async runRebalanceScenarios(
-    scenarios: SingleRebalanceCycleScenario[],
-  ): Promise<void> {
-    // For each rebalance iteration
-    for (let i = 0; i < this._rebalanceProgram.rebalanceIterations; i++) {
-      const scenario = scenarios[i];
+  // public async runRebalanceScenarios(
+  //   scenarios: SingleRebalanceCycleScenario[],
+  // ): Promise<void> {
+  //   // For each rebalance iteration
+  //   for (let i = 0; i < this._rebalanceProgram.rebalanceIterations; i++) {
+  //     const scenario = scenarios[i];
 
-      // Update prices
-      await this._updateOracles();
+  //     // Update prices
+  //     await this._updateOracles();
 
-      // Issue and Redeem Sets
-      await this._executeIssuanceScheduleAsync(scenario.issuanceSchedule);
+  //     // Issue and Redeem Sets
+  //     await this._executeIssuanceScheduleAsync(scenario.issuanceSchedule);
 
-      // Run Proposal (change prices) and transtion to rebalance
-      await this._propose(scenario.priceUpdate);
+  //     // Run Proposal (change prices) and transtion to rebalance
+  //     await this._propose(scenario.priceUpdate);
 
-      // Prepare scenario
-      await this._fundBidders();
+  //     // Prepare scenario
+  //     await this._fundBidders();
 
-      await this._transitionToRebalance();
+  //     await this._transitionToRebalance();
 
-      // Run bidding program
-      await this._executeBiddingScheduleAsync(scenario.biddingSchedule, scenario.priceUpdate);
-      // Finish rebalance cycle
-      await this._settleRebalanceAndLogState();
+  //     // Run bidding program
+  //     await this._executeBiddingScheduleAsync(scenario.biddingSchedule, scenario.priceUpdate);
+  //     // Finish rebalance cycle
+  //     await this._settleRebalanceAndLogState();
 
-      // Execute assertions
+  //     // Execute assertions
+  //   }
+  // }
+
+  /* ============ Private ============ */
+  private async function distributeComponents(
+    components: (StandardTokenMockContract | WethMockContract)[],
+    recipients: Address[],
+  ) {
+    for (let i = 0; i < recipients.length; i++) {
+      // Send a large amount of components from the contract deployer to issuer accounts
+      await this._erc20Wrapper.transferTokensAsync(
+        components,
+        recipient[i],
+        LARGE_QUANTITY_COMPONENT,
+      );
     }
   }
 
-  /* ============ Private ============ */
+  // function _mintInitialSets() {
+  //   const { initialSetIssuances } = this._rebalanceProgram.rebalancingSetConfig;
+  // }
 
-  function _distributeComponentsToIssuers() {
+  // function issueSets(issuanceSchedule: NewIssuanceTxn[]) {
+  //   // Loop through issuance schedule and mint Sets from the corresponding sender
+  //   for (let i = 0; i < issuanceSchedule.length; i++) {
 
-  }
+  //   }
+  // }
 
 }

@@ -6,11 +6,16 @@ import CONSTANTS from './constants';
 
 import deploymentConstants from '../../../deployments/constants';
 
-import { DEPLOYED_SETS_INFO } from '../../../deployments/deployedContractParameters';
+import { DEPLOYED_SETS_INFO, DEPENDENCY } from '../../../deployments/deployedContractParameters';
 
 const BITETH_BTC_DOMINANT_CONFIG = DEPLOYED_SETS_INFO.BITETH_BTC_DOMINANT;
 
 export const BITETH_BTC_DOMINANT: AssetScenario  = {
+  scenarioCount: 8,
+  assetOne: DEPENDENCY.WBTC,
+  assetTwo: DEPENDENCY.WETH,
+  issuerAccounts: [1, 2],
+  biddingAccounts: [3, 4],
   managerConfig: {
     pricePrecision: BITETH_BTC_DOMINANT_CONFIG.PRICE_PRECISION,
     assetOneMultiplier: BITETH_BTC_DOMINANT_CONFIG.WBTC_MULTIPLIER,
