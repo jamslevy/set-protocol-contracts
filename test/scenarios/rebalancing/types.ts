@@ -5,11 +5,12 @@ export interface AssetScenario {
   managerConfig: ManagerConfig;
   rebalancingSetConfig: RebalancingSetConfig;
   priceSchedule: PriceSchedule;
-  issuanceSchedule: IssuanceSchedule;
-  biddingSchedule: (BidTxn[])[];
+  issuanceSchedule: NewIssuanceSchedule;
+  biddingSchedule: (BidTransaction[])[];
 }
 
 export interface ManagerConfig {
+  pricePrecision: BigNumber;
   assetOneMultiplier: BigNumber;
   assetTwoMultiplier: BigNumber;
   lowerAllocationBound: BigNumber;
@@ -18,22 +19,22 @@ export interface ManagerConfig {
 }
 
 export interface RebalancingSetConfig {
-  unitShares: BigNumber;
   naturalUnit: BigNumber;
   rebalanceInterval: BigNumber;
   proposalPeriod: BigNumber;
-  initialTokenPrices: TokenPrices;
-  initialSetIssueQuantity: BigNumber;
-  initialSetUnits: BigNumber[];
+  initialPriceTarget: BigNumber;
+  initialAssetOnePrice: BigNumber;
+  initialAssetTwoPrice: BigNumber;
   initialSetNaturalUnit: BigNumber;
+  initialSetIssuances: NewIssuanceTxn[];
 }
 
-export interface IssuanceSchedule {
-  issuances: (IssuanceTxn[])[];
-  redemptions: (IssuanceTxn[])[];
+export interface NewIssuanceSchedule {
+  issuances: (NewIssuanceTxn[])[];
+  redemptions: (NewIssuanceTxn[])[];
 }
 
-export interface IssuanceTxn {
+export interface NewIssuanceTxn {
   sender: number;  // Account number
   amount: BigNumber;
 }
@@ -43,10 +44,17 @@ export interface PriceSchedule {
   assetTwo: BigNumber[];
 }
 
-export interface BidTxn {
-  senders: number;
+export interface BidTransaction {
+  sender: number;
   percentRemainingToBid: number;
   secondsFromFairValue: BigNumber;
+}
+
+// OLD DATA
+
+export interface IssuanceSchedule {
+  issuances: IssuanceTxn[];
+  redemptions: IssuanceTxn[];
 }
 
 export interface UserAccountData {
@@ -116,12 +124,7 @@ export interface BidTxn {
   price: BigNumber;
 }
 
-export interface IssueTxn {
-  sender: Address;
-  amount: BigNumber;
-}
-
-export interface RedemptionTxn {
+export interface IssuanceTxn {
   sender: Address;
   amount: BigNumber;
 }

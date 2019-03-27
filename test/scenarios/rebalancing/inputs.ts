@@ -1,17 +1,16 @@
-import { Address } from 'set-protocol-utils';
 import { BigNumber } from 'set-protocol-utils';
 import { ZERO } from '@utils/constants';
 
 import { AssetScenario } from './types';
 import CONSTANTS from './constants';
 
-const deploymentConstants = '../../../deployments/constants';
+import deploymentConstants from '../../../deployments/constants';
 
-const DEPLOYED_CONTRACT_CONFIG = '../../../deployments/deployedContractParameters';
+import { DEPLOYED_SETS_INFO } from '../../../deployments/deployedContractParameters';
 
-const BITETH_BTC_DOMINANT_CONFIG = DEPLOYED_CONTRACT_CONFIG.BITETH_BTC_DOMINANT;
+const BITETH_BTC_DOMINANT_CONFIG = DEPLOYED_SETS_INFO.BITETH_BTC_DOMINANT;
 
-const BITETH_BTC_DOMINANT: AssetScenario  = {
+export const BITETH_BTC_DOMINANT: AssetScenario  = {
   managerConfig: {
     pricePrecision: BITETH_BTC_DOMINANT_CONFIG.PRICE_PRECISION,
     assetOneMultiplier: BITETH_BTC_DOMINANT_CONFIG.WBTC_MULTIPLIER,
@@ -23,14 +22,14 @@ const BITETH_BTC_DOMINANT: AssetScenario  = {
   rebalancingSetConfig: {
     naturalUnit: CONSTANTS.DEFAULT_REBALANCING_NATURAL_UNIT,
     rebalanceInterval: CONSTANTS.THIRTY_DAYS_IN_SECONDS,
-    proposalPeriod: CONSTANTS.ONE_DAY_IN_SECONDS,
-    initialPriceTarget: deploymentConstants.DEFAULT_REBALANCING_NATURAL_UNIT,
+    proposalPeriod: CONSTANTS.SECONDS_PER_DAY,
+    initialPriceTarget: CONSTANTS.DEFAULT_REBALANCING_NATURAL_UNIT,
     initialAssetOnePrice: deploymentConstants.WBTC.PRICE,
     initialAssetTwoPrice: deploymentConstants.WETH.PRICE,
     initialSetNaturalUnit: CONSTANTS.DEFAULT_REBALANCING_NATURAL_UNIT,
-    initialIssuances: [
+    initialSetIssuances: [
       { sender: 1, amount: new BigNumber(5).mul(10 ** 18) },
-      { sender: 2, amount: new BigNumber(1).mul(10 ** 19) }
+      { sender: 2, amount: new BigNumber(1).mul(10 ** 19) },
     ],
   },
   priceSchedule: {
@@ -60,7 +59,7 @@ const BITETH_BTC_DOMINANT: AssetScenario  = {
       [], // Month 1
       [ // Month 2
         { sender: 1, amount: new BigNumber(5).mul(10 ** 18) },
-        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) }
+        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) },
       ],
       [], // Month 3
       [{ sender: 1, amount: new BigNumber(5).mul(10 ** 18) }], // Month 4
@@ -72,18 +71,18 @@ const BITETH_BTC_DOMINANT: AssetScenario  = {
     redemptions: [
       [  // Month 1
         { sender: 1, amount: new BigNumber(1).mul(10 ** 18) },
-        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) }
+        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) },
       ],
       [], // Month 2
       [ // Month 3
         { sender: 1, amount: new BigNumber(1).mul(10 ** 18) },
-        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) }
+        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) },
       ],
       [], // Month 4
       [], // Month 5
       [
         { sender: 1, amount: new BigNumber(5).mul(10 ** 18) },
-        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) }
+        { sender: 2, amount: new BigNumber(2).mul(10 ** 18) },
       ], // Month 6
       [], // Month 7
       [], // Month 8
@@ -91,36 +90,36 @@ const BITETH_BTC_DOMINANT: AssetScenario  = {
   },
   biddingSchedule: [
     [ // Month 1
-      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: 0 },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: 0 },
+      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
     ],
     [ // Month 2
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(-3600) },
       { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(-3600) },
     ],
     [ // Month 3
-      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: 0 },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: 0 },
+      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
     ],
     [ // Month 4
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(3600) },
       { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(3600) },
     ],
     [ // Month 5
-      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: 0 },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: 0 },
+      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
     ],
     [ // Month 6
-      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: 0 },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: 0 },
+      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
     ],
     [ // Month 7
-      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: 0 },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: 0 },
+      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
     ],
     [ // Month 8
-      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: 0 },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: 0 },
+      { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
     ],
-  ]
+  ],
 };

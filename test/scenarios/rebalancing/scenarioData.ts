@@ -6,11 +6,9 @@ import {
   BidTxn,
   GeneralRebalancingData,
   InitializationParameters,
-  IssueTxn,
-  RedemptionTxn,
+  IssuanceTxn,
   IssuanceSchedule,
   FullRebalanceProgram,
-  RedemptionTxn,
   SingleRebalanceCycleScenario,
   TokenPrices
 } from './types';
@@ -70,11 +68,11 @@ function getCycleData(accounts): SingleRebalanceCycleScenario[] {
   };
 
     // Rebalancing Cycle 2
-  const issueTxnOne: IssueTxn = {
+  const issueTxnOne: IssuanceTxn = {
     sender: accounts[5],
     amount: new BigNumber(10 ** 21),
   };
-  const redeemTxnOne: RedemptionTxn = {
+  const redeemTxnOne: IssuanceTxn = {
     sender: accounts[6],
     amount: new BigNumber(5 * 10 ** 20),
   };

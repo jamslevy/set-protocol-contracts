@@ -33,7 +33,7 @@ import {
   UserAccountData,
   TokenBalances,
   UserTokenBalances,
-  IssueTxn,
+  IssuanceTxn,
   IssuanceSchedule,
   TokenPrices,
   BidTxn,
@@ -574,7 +574,7 @@ export class BTCETHMultipleRebalanceWrapper {
   }
 
   private async _issueRebalancingSetsAsync(
-    issuance: IssueTxn,
+    issuance: IssuanceTxn,
   ): Promise<void> {
     const currentSetInstance = await this._rebalancingWrapper.getExpectedSetTokenAsync(
       this._getRecentBaseSet()
@@ -609,7 +609,7 @@ export class BTCETHMultipleRebalanceWrapper {
   }
 
   private async _redeemRebalancingSetsAsync(
-    redemption: IssueTxn,
+    redemption: IssuanceTxn,
   ): Promise<void> {
     const txHashRedeem = await this._coreMock.redeem.sendTransactionAsync(
       this._rebalancingSetToken.address,
