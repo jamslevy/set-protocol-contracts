@@ -15,7 +15,7 @@ export const BITETH_BTC_DOMINANT: AssetScenario  = {
   assetOne: DEPENDENCY.WBTC,
   assetTwo: DEPENDENCY.WETH,
   issuerAccounts: [1, 2],
-  biddingAccounts: [3, 4],
+  bidderAccounts: [3, 4],
   managerConfig: {
     pricePrecision: BITETH_BTC_DOMINANT_CONFIG.PRICE_PRECISION,
     assetOneMultiplier: BITETH_BTC_DOMINANT_CONFIG.WBTC_MULTIPLIER,

@@ -19,7 +19,7 @@ import {
   FullRebalanceProgram,
 } from './types';
 
-import { RebalanceScenariosWrapper } from './deployedSetScenarios';
+import { RebalanceScenariosWrapper } from './deployedSetScenarioRunner';
 
 BigNumberSetup.configure();
 ChaiSetup.configure();
@@ -60,7 +60,7 @@ contract('Multiple Rebalance BTC-ETH 50/50', accounts => {
     await blockchain.revertAsync();
   });
 
-  async function subject(): Promise<DataOutput> {
+  async function subject(): Promise<void> {
     return rebalanceScenariosWrapper.runFullRebalanceProgram();
   }
 

@@ -30,6 +30,7 @@ import { Blockchain } from '@utils/blockchain';
 import { getWeb3 } from '@utils/web3Helper';
 
 import {
+  AssetScenario,
   UserAccountData,
   TokenBalances,
   UserTokenBalances,
@@ -38,8 +39,11 @@ import {
   BidTxn,
   SingleRebalanceCycleScenario,
   FullRebalanceProgram,
-  DataOutput,
 } from './types';
+
+import {
+  findDependency,
+} from '../../../deployments/utils/output-helper';
 
 import { CoreWrapper } from '@utils/wrappers/coreWrapper';
 import { ERC20Wrapper } from '@utils/wrappers/erc20Wrapper';
@@ -56,9 +60,8 @@ const web3Utils = new Web3Utils(web3);
 const LARGE_QUANTITY_COMPONENT = new BigNumber(10 ** 30);
 
 export class RebalanceScenariosWrapper {
-  private _accounts: UserAccountData;
+  private _accounts: Address[];
   private _rebalanceProgram: AssetScenario;
-  private _dataLogger: DataOutput;
 
   private _contractOwnerAddress: Address;
   private _coreWrapper: CoreWrapper;
@@ -85,7 +88,7 @@ export class RebalanceScenariosWrapper {
   constructor(accounts: Address[], rebalanceProgram: AssetScenario) {
     this._contractOwnerAddress = accounts[0];
     this._rebalanceProgram = rebalanceProgram;
-    this._accounts = this._createAccountPersonalitiesAsync(accounts);
+    this._accounts = accounts;
 
     this._coreWrapper = new CoreWrapper(this._contractOwnerAddress, this._contractOwnerAddress);
     this._erc20Wrapper = new ERC20Wrapper(this._contractOwnerAddress);
@@ -106,17 +109,25 @@ export class RebalanceScenariosWrapper {
   }
 
   public async initialize(): Promise<void> {
-    const { issuerAccounts, bidderAccounts, assetOne, assetTwo } = this._rebalancingProgram;
+    const { issuerAccounts, bidderAccounts, assetOne, assetTwo } = this._rebalanceProgram;
 
-    const issuerAccounts: Address[] = _.map(issuerAccounts, accountNumber => accounts[accountNumber]);
-    const bidderAccounts: Address[] = _.map(bidderAccounts, accountNumber => accounts[accountNumber]);
-    const recipients = _.union([issuerAccounts, bidderAccounts]);
+    const issuerAccountsAddresses: Address[] = _.map(issuerAccounts, accountNumber => this._accounts[accountNumber]);
+    const bidderAccountAddresses: Address[] = _.map(bidderAccounts, accountNumber => this._accounts[accountNumber]);
+    const recipients: string[] = _.union(issuerAccountsAddresses, bidderAccountAddresses);
 
-    const assetOneAddress = await findDependency(assetOne)
-    const assetOneAddress = await findDependency(assetTwo)
-    const components = this._erc20Wrapper.retrieveTokenInstancesAsync([assetOneAddress, assetOneAddress]);
+    const assetOneAddress = await findDependency(assetOne);
+    const assetTwoAddress = await findDependency(assetTwo);
+    const components = await this._erc20Wrapper.retrieveTokenInstancesAsync([assetOneAddress, assetTwoAddress]);
 
-    await this._distributeComponents(components, recipients);
+    // await this.distributeComponents(components, recipients);
+    for (let i = 0; i < recipients.length; i++) {
+      // Send a large amount of components from the contract deployer to issuer accounts
+      await this._erc20Wrapper.transferTokensAsync(
+        components,
+        recipients[i],
+        LARGE_QUANTITY_COMPONENT,
+      );
+    }
 
     // Issue Rebalancing Sets using _contractOwnerAddress tokens and distrubuted to owner group
     // await this._mintInitialSets();
@@ -153,19 +164,19 @@ export class RebalanceScenariosWrapper {
   // }
 
   /* ============ Private ============ */
-  private async function distributeComponents(
-    components: (StandardTokenMockContract | WethMockContract)[],
-    recipients: Address[],
-  ) {
-    for (let i = 0; i < recipients.length; i++) {
-      // Send a large amount of components from the contract deployer to issuer accounts
-      await this._erc20Wrapper.transferTokensAsync(
-        components,
-        recipient[i],
-        LARGE_QUANTITY_COMPONENT,
-      );
-    }
-  }
+  // private async function distributeComponents(
+  //   components: (StandardTokenMockContract | WethMockContract)[],
+  //   recipients: Address[],
+  // ) {
+  //   for (let i = 0; i < recipients.length; i++) {
+  //     // Send a large amount of components from the contract deployer to issuer accounts
+  //     await this._erc20Wrapper.transferTokensAsync(
+  //       components,
+  //       recipient[i],
+  //       LARGE_QUANTITY_COMPONENT,
+  //     );
+  //   }
+  // }
 
   // function _mintInitialSets() {
   //   const { initialSetIssuances } = this._rebalanceProgram.rebalancingSetConfig;
