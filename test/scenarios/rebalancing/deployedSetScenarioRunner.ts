@@ -44,6 +44,7 @@ import {
 import { RebalancingScenarioValidations } from './validations';
 
 import { DEPLOYED_SETS_INFO, DEPENDENCY } from '../../../deployments/deployedContractParameters';
+import deployedDependencies from '../../../deployments/dependencies';
 
 import {
   findDependency,
@@ -67,6 +68,7 @@ const LARGE_QUANTITY_COMPONENT = new BigNumber(10 ** 30);
 export class RebalanceScenariosWrapper {
   private _accounts: Address[];
   private _rebalanceProgram: AssetScenario;
+  private _currentIteration: number;
 
   private _deployedBaseSets: Address[];
 
@@ -132,6 +134,8 @@ export class RebalanceScenariosWrapper {
       collateralSetName,
       assetOne,
       assetTwo,
+      assetOneMedianizer,
+      assetTwoMedianizer,
     } = this._rebalanceProgram;
 
     const assetOneAddress = await findDependency(assetOne);
@@ -146,9 +150,11 @@ export class RebalanceScenariosWrapper {
 
     const assetOneMedianizerAddress = await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
     this._assetOneMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
+    await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetOneMedianizer, this._contractOwnerAddress);
 
     const assetTwoMedianizerAddress = await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
     this._assetTwoMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
+    await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetTwoMedianizer, this._contractOwnerAddress);
 
     await this._distributeComponentsAndSetRecipientApprovals();
 
@@ -202,21 +208,32 @@ export class RebalanceScenariosWrapper {
   ): Promise<void> {
     // For each rebalance iteration
     for (let i = 0; i < this._rebalanceProgram.scenarioCount; i++) {
-      // Update prices
-      await this._updateOracles(i);
+      this._currentIteration = i;
 
-      const { issuanceSchedule } = this._rebalanceProgram;
+      console.log(" ('------------- Running iteration: ", i, " -------------");
+
+      // Update prices
+      await this._updateOracles();
+
+      console.log("Updated oracles", i);
+
       // Issue and Redeem Sets
-      await this.issueRebalancingSets(issuanceSchedule.issuances[i]);
-      await this.redeemRebalancingSets(issuanceSchedule.issuances[i]);
+      await this.issueRebalancingSets();
+
+      console.log("Issued Rebalancing Sets", i);
+
+      await this.redeemRebalancingSets();
+
+      console.log("Redeemed Rebalancing Sets", i);
 
       // // Run Proposal (change prices) and transtion to rebalance
       // await this._propose(scenario.priceUpdate);
 
-      // // Prepare scenario
-      // await this._fundBidders();
+      // console.log("Proposed:", i);
 
       // await this._transitionToRebalance();
+
+      // console.log("Transitioning to Rebalance:", i);
 
       // // Run bidding program
       // await this._executeBiddingScheduleAsync(scenario.biddingSchedule, scenario.priceUpdate);
@@ -224,35 +241,55 @@ export class RebalanceScenariosWrapper {
       // await this._settleRebalanceAndLogState();
 
       // Execute assertions
+
+
+      // Log State
+      await this.logState();
     }
   }
 
-  public async _updateOracles(scenarioNumber: number): Promise<void> {
+  public async _updateOracles(): Promise<void> {
     const { priceSchedule } = this._rebalanceProgram;
+    const iterationNumber = this._currentIteration;
 
     if (this._assetOneMedianizer) {
-        await this._oracleWrapper.updateMedianizerPriceAsync(
-          this._assetOneMedianizer,
-          priceSchedule.assetOne[scenarioNumber],
-          SetTestUtils.generateTimestamp(1000),
-        );
+      await this._oracleWrapper.updateMedianizerPriceAsync(
+        this._assetOneMedianizer,
+        priceSchedule.assetOne[iterationNumber],
+        SetTestUtils.generateTimestamp(1000),
+      );
+      console.log(
+        `Updating Oracle 1 to ${priceSchedule.assetOne[iterationNumber]} at iteration ${iterationNumber}`
+      );
     }
 
     if (this._assetTwoMedianizer) {
       await this._oracleWrapper.updateMedianizerPriceAsync(
         this._assetTwoMedianizer,
-        priceSchedule.assetTwo[scenarioNumber],
+        priceSchedule.assetTwo[iterationNumber],
         SetTestUtils.generateTimestamp(1000),
+      );
+      console.log(
+        `Updating Oracle 2 to ${priceSchedule.assetTwo[iterationNumber]} at iteration ${iterationNumber}`
       );
     }
   }
 
-  private async issueRebalancingSets(issuanceSchedule: NewIssuanceTxn[]): Promise<void> {
+  private async issueRebalancingSets(schedule?: NewIssuanceTxn[]): Promise<void> {
+    let currentSchedule;
+
+    if (schedule) {
+      currentSchedule = schedule;
+    } else {
+      const { issuanceSchedule } = this._rebalanceProgram;
+      currentSchedule = issuanceSchedule.issuances[this._currentIteration];  
+    }
+
     // Loop through issuance schedule and mint Sets from the corresponding sender
-    for (let i = 0; i < issuanceSchedule.length; i++) {
+    for (let i = 0; i < currentSchedule.length; i++) {
       // Rebalancing Set Quantity
-      const rebalancingSetQuantity = issuanceSchedule[i].amount;
-      const sender = this._accounts[issuanceSchedule[i].sender];
+      const rebalancingSetQuantity = currentSchedule[i].amount;
+      const sender = this._accounts[currentSchedule[i].sender];
 
       await this._rebalancingWrapper.issueRebalancingSetFromBaseComponentsAsync(
         this._core,
@@ -261,15 +298,22 @@ export class RebalanceScenariosWrapper {
         rebalancingSetQuantity,
         sender
       );
+
+      console.log(
+        `Issuing ${rebalancingSetQuantity} RBSet to ${sender} at iteration ${this._currentIteration}`
+      );
     }
   }
 
-  private async redeemRebalancingSets(issuanceSchedule: NewIssuanceTxn[]): Promise<void> {
+  private async redeemRebalancingSets(): Promise<void> {
+    const { issuanceSchedule } = this._rebalanceProgram;
+    const currentSchedule = issuanceSchedule.redemptions[this._currentIteration];
+
     // Loop through issuance schedule and mint Sets from the corresponding sender
-    for (let i = 0; i < issuanceSchedule.length; i++) {
+    for (let i = 0; i < currentSchedule.length; i++) {
       // Rebalancing Set Quantity
-      const rebalancingSetQuantity = issuanceSchedule[i].amount;
-      const sender = this._accounts[issuanceSchedule[i].sender];
+      const rebalancingSetQuantity = currentSchedule[i].amount;
+      const sender = this._accounts[currentSchedule[i].sender];
 
       await this._rebalancingWrapper.redeemRebalancingSetToBaseComponentsAsync(
         this._core,
@@ -278,6 +322,25 @@ export class RebalanceScenariosWrapper {
         rebalancingSetQuantity,
         sender
       );
+
+      console.log(
+        `Redeeming ${rebalancingSetQuantity} RBSet to ${sender} at iteration ${this._currentIteration}`
+      );
     }
+  }
+
+  private async logState(): Promise<void> {
+    // Log account balances of Set of issuers
+    console.log('------------- Issuer Rebalancing Set Balances ------------- ');
+    const issuers = this._rebalanceProgram.issuerAccounts;
+    for (let i = 0; i < issuers.length; i++) {
+      const issuerAddress = this._accounts[issuers[i]];
+
+      const tokenBalance = await this._rebalancingSetToken.balanceOf.callAsync(issuerAddress);
+      console.log(issuerAddress, ': ', tokenBalance.toString());
+    }
+    
+
+    // Log account balances of components of bidders
   }
 }

@@ -27,7 +27,7 @@ import { SetToken } from '../../artifacts/ts/SetToken';
 import { SetTokenFactory } from '../../artifacts/ts/SetTokenFactory';
 import { WhiteList } from '../../artifacts/ts/WhiteList';
 
-import { DEPLOYED_SETS_INFO } from '../deployedContractParameters';
+import { DEPLOYED_SETS_INFO, DEPENDENCY } from '../deployedContractParameters';
 import dependencies from '../dependencies';
 import constants from '../constants';
 
@@ -78,13 +78,19 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wBTC medianizer address', async () => {
-      const wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId];
+      let wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
+        dependencies.WBTC_MEDIANIZER[networkId] :
+        await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
+
       const receivedBTCMedianizerAddress = await rebalancingManagerContract.methods.btcPriceFeed().call();
       expect(receivedBTCMedianizerAddress).toEqual(wBTCMedianizerAddress);
     });
 
     it('rebalancing manager has correct wETH medianizer address', async () => {
-      const wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId];
+      let wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
+        dependencies.WETH_MEDIANIZER[networkId] :
+        await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
+
       const receivedETHMedianzierAddress = await rebalancingManagerContract.methods.ethPriceFeed().call();
       expect(receivedETHMedianzierAddress).toEqual(wETHMedianizerAddress);
     });
@@ -314,13 +320,19 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wBTC medianizer address', async () => {
-      const wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId];
+      let wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
+        dependencies.WBTC_MEDIANIZER[networkId] :
+        await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
+
       const receivedBTCMedianizerAddress = await rebalancingManagerContract.methods.btcPriceFeed().call();
       expect(receivedBTCMedianizerAddress).toEqual(wBTCMedianizerAddress);
     });
 
     it('rebalancing manager has correct wETH medianizer address', async () => {
-      const wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId];
+      let wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
+        dependencies.WETH_MEDIANIZER[networkId] :
+        await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
+
       const receivedETHMedianzierAddress = await rebalancingManagerContract.methods.ethPriceFeed().call();
       expect(receivedETHMedianzierAddress).toEqual(wETHMedianizerAddress);
     });
@@ -549,7 +561,10 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wETH medianizer address', async () => {
-      const wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId];
+      let wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
+        dependencies.WETH_MEDIANIZER[networkId] :
+        await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
+
       const receivedETHMedianzierAddress = await rebalancingManagerContract.methods.ethPriceFeed().call();
       expect(receivedETHMedianzierAddress).toEqual(wETHMedianizerAddress);
     });
@@ -784,7 +799,10 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wBTC medianizer address', async () => {
-      const wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId];
+      let wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
+        dependencies.WBTC_MEDIANIZER[networkId] :
+        await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
+
       const receivedBTCMedianzierAddress = await rebalancingManagerContract.methods.btcPriceFeed().call();
       expect(receivedBTCMedianzierAddress).toEqual(wBTCMedianizerAddress);
     });

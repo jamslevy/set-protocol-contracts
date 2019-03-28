@@ -28,8 +28,6 @@ export class OracleWrapper {
   /* ============ Deployed Contracts ============ */
 
   public async getDeployedMedianizerAsync(medianizerAddress: Address): Promise<MedianContract> {
-    console.log("Medniazer address", medianizerAddress);
-
     return await MedianContract.at(medianizerAddress, web3, TX_DEFAULTS);
   }
 
