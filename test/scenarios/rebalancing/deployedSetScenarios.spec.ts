@@ -31,7 +31,7 @@ const { expect } = chai;
 const blockchain = new Blockchain(web3);
 
 
-contract('Multiple Rebalance BTC-ETH 50/50', accounts => {
+contract('Deployed Set Scenarios', accounts => {
 
   let rebalanceScenariosWrapper: RebalanceScenariosWrapper;
   let scenarioData: AssetScenario;
@@ -65,7 +65,9 @@ contract('Multiple Rebalance BTC-ETH 50/50', accounts => {
   }
 
   describe('BTCETH_BTC_DOMINANT', async () => {
-   
+    it('works', async () => {
+      await subject();
+    }); 
   });
 
 
