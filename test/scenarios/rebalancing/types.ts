@@ -5,6 +5,8 @@ export interface AssetScenario {
   scenarioCount: number;
   assetOne: string;
   assetTwo: string;
+  rebalancingSetName: string;
+  collateralSetName: string;
   issuerAccounts: number[];
   bidderAccounts: number[];
   managerConfig: ManagerConfig;

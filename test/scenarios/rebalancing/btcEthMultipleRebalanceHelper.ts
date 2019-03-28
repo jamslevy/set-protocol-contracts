@@ -743,4 +743,6 @@ export class BTCETHMultipleRebalanceWrapper {
   private _getRecentBaseSet(): Address {
     return this._rebalanceProgram.generalRebalancingData.baseSets.slice(-1)[0];
   }
+
+  
 }

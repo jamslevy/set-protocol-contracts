@@ -14,6 +14,8 @@ export const BITETH_BTC_DOMINANT: AssetScenario  = {
   scenarioCount: 8,
   assetOne: DEPENDENCY.WBTC,
   assetTwo: DEPENDENCY.WETH,
+  rebalancingSetName: BITETH_BTC_DOMINANT_CONFIG.SET_NAME,
+  collateralSetName: BITETH_BTC_DOMINANT_CONFIG.COLLATERAL_NAME,
   issuerAccounts: [1, 2],
   bidderAccounts: [3, 4],
   managerConfig: {

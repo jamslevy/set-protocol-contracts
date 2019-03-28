@@ -43,6 +43,7 @@ import {
 
 import {
   findDependency,
+  getContractAddress,
 } from '../../../deployments/utils/output-helper';
 
 import { CoreWrapper } from '@utils/wrappers/coreWrapper';
@@ -59,9 +60,13 @@ const web3Utils = new Web3Utils(web3);
 
 const LARGE_QUANTITY_COMPONENT = new BigNumber(10 ** 30);
 
+const Vault = artifacts.require('Vault');
+
 export class RebalanceScenariosWrapper {
   private _accounts: Address[];
   private _rebalanceProgram: AssetScenario;
+
+  private _deployedBaseSets: Address[];
 
   private _contractOwnerAddress: Address;
   private _coreWrapper: CoreWrapper;
@@ -100,7 +105,7 @@ export class RebalanceScenariosWrapper {
     );
     this._oracleWrapper = new OracleWrapper(this._contractOwnerAddress);
 
-    // Set all the deployed addresses
+    // Set all the deployed addresses    
   }
 
   public async runFullRebalanceProgram(): Promise<void> {
@@ -109,7 +114,16 @@ export class RebalanceScenariosWrapper {
   }
 
   public async initialize(): Promise<void> {
-    const { issuerAccounts, bidderAccounts, assetOne, assetTwo } = this._rebalanceProgram;
+    const {
+      issuerAccounts,
+      bidderAccounts,
+      assetOne,
+      assetTwo,
+      rebalancingSetConfig,
+      collateralSetName,
+    } = this._rebalanceProgram;
+
+    this._deployedBaseSets = [await getContractAddress(collateralSetName)];
 
     const issuerAccountsAddresses: Address[] = _.map(issuerAccounts, accountNumber => this._accounts[accountNumber]);
     const bidderAccountAddresses: Address[] = _.map(bidderAccounts, accountNumber => this._accounts[accountNumber]);
@@ -119,7 +133,6 @@ export class RebalanceScenariosWrapper {
     const assetTwoAddress = await findDependency(assetTwo);
     const components = await this._erc20Wrapper.retrieveTokenInstancesAsync([assetOneAddress, assetTwoAddress]);
 
-    // await this.distributeComponents(components, recipients);
     for (let i = 0; i < recipients.length; i++) {
       // Send a large amount of components from the contract deployer to issuer accounts
       await this._erc20Wrapper.transferTokensAsync(
@@ -127,10 +140,73 @@ export class RebalanceScenariosWrapper {
         recipients[i],
         LARGE_QUANTITY_COMPONENT,
       );
+
+      const vaultAddress = await getContractAddress(Vault.contractName);
+
+      // Approve components to the transfer proxy
+      await this._erc20Wrapper.approveTransfersAsync(
+        components,
+        vaultAddress,
+        recipients[i],
+      );
     }
 
     // Issue Rebalancing Sets using _contractOwnerAddress tokens and distrubuted to owner group
-    // await this._mintInitialSets();
+    await this._mintInitialSets();
+  }
+
+  /* ============ Private ============ */
+  private async _mintInitialSets(): Promise<void> {
+    const { rebalancingSetConfig } = this._rebalanceProgram;
+
+    await this.issueRebalancingSets(rebalancingSetConfig.initialSetIssuances);
+  }
+
+  private async issueRebalancingSets(issuanceSchedule: NewIssuanceTxn[]): Promise<void> {
+    const { rebalancingSetName } = this._rebalanceProgram;
+
+    const currentSetAddress = _.last(this._deployedBaseSets);
+
+    const currentSetInstance = await this._coreWrapper.getRebalancingInstanceFromAddress(currentSetAddress);
+
+
+    const rebalancingSetAddress = await getContractAddress(rebalancingSetName);
+
+    const rebalancingSet = await this._coreWrapper.getRebalancingInstanceFromAddress(rebalancingSetAddress);
+
+    // Loop through issuance schedule and mint Sets from the corresponding sender
+    for (let i = 0; i < issuanceSchedule.length; i++) {
+      // Rebalancing Set Quantity
+      const rebalancingSetQuantity = issuanceSchedule[i].amount;
+
+      const currentSetNaturalUnit = await currentSetInstance.naturalUnit.callAsync();
+
+      const rebalancingSetUnitShares = await this._rebalancingSetToken.unitShares.callAsync();
+      const rebalancingSetNaturalUnit = await this._rebalancingSetToken.naturalUnit.callAsync();
+      const currentSetRequiredAmountUnrounded = issuanceSchedule[i].amount
+                                         .mul(rebalancingSetUnitShares)
+                                         .div(rebalancingSetNaturalUnit)
+                                         .round(0, 3);
+      const currentSetRequiredAmount = currentSetRequiredAmountUnrounded.sub(
+        currentSetRequiredAmountUnrounded.modulo(currentSetNaturalUnit)
+      ).add(currentSetNaturalUnit);
+
+      await this._core.issue.sendTransactionAsync(
+        currentSetInstance.address,
+        currentSetRequiredAmount,
+        { from: this._accounts[issuanceSchedule[i].sender] },
+      );
+      await currentSetInstance.approve.sendTransactionAsync(
+        this._transferProxy.address,
+        UNLIMITED_ALLOWANCE_IN_BASE_UNITS,
+        { from: this._accounts[issuanceSchedule[i].sender] },
+      );
+      await this._core.issue.sendTransactionAsync(
+        this._rebalancingSetToken.address,
+        issuanceSchedule[i].amount,
+        { from: this._accounts[issuanceSchedule[i].sender] },
+      );
+    }
   }
 
   // public async runRebalanceScenarios(
@@ -162,31 +238,4 @@ export class RebalanceScenariosWrapper {
   //     // Execute assertions
   //   }
   // }
-
-  /* ============ Private ============ */
-  // private async function distributeComponents(
-  //   components: (StandardTokenMockContract | WethMockContract)[],
-  //   recipients: Address[],
-  // ) {
-  //   for (let i = 0; i < recipients.length; i++) {
-  //     // Send a large amount of components from the contract deployer to issuer accounts
-  //     await this._erc20Wrapper.transferTokensAsync(
-  //       components,
-  //       recipient[i],
-  //       LARGE_QUANTITY_COMPONENT,
-  //     );
-  //   }
-  // }
-
-  // function _mintInitialSets() {
-  //   const { initialSetIssuances } = this._rebalanceProgram.rebalancingSetConfig;
-  // }
-
-  // function issueSets(issuanceSchedule: NewIssuanceTxn[]) {
-  //   // Loop through issuance schedule and mint Sets from the corresponding sender
-  //   for (let i = 0; i < issuanceSchedule.length; i++) {
-
-  //   }
-  // }
-
 }
