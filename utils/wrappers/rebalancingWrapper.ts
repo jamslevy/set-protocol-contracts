@@ -275,19 +275,45 @@ export class RebalancingWrapper {
                                        .round(0, 3);
     const currentSetRequiredAmount = currentSetRequiredAmountUnrounded.sub(
       currentSetRequiredAmountUnrounded.modulo(baseSetNaturalUnit)
-    ).add(baseSetNaturalUnit);
+    )
+    // .add(baseSetNaturalUnit);
 
-    await core.redeem.sendTransactionAsync(
+    // console.log(
+    //   "#redeemRebalancingSetToBaseComponentsAsync-1",
+    //   rebalancingSet.address,
+    //   rebalancingSetQuantity.toString()
+    // );
+
+    await core.redeemAndWithdrawTo.sendTransactionAsync(
       rebalancingSet.address,
+      from,
       rebalancingSetQuantity,
+      new BigNumber(0),
       { from },
     );
 
-    await core.redeem.sendTransactionAsync(
+    // console.log(
+    //   "#redeemRebalancingSetToBaseComponentsAsync-2",
+    //   currentSetAddress,
+    //   currentSetRequiredAmount.toString(),
+    // );
+
+    // const userBalance = await currentSetInstance.balanceOf.callAsync(from);
+    // console.log(
+    //   "User balance",
+    //   userBalance.toString(),
+    //   currentSetRequiredAmount.sub(userBalance).toString()
+    // );
+
+    await core.redeemAndWithdrawTo.sendTransactionAsync(
       currentSetAddress,
+      from,
       currentSetRequiredAmount,
+      new BigNumber(0),
       { from },
     );
+
+
   }
 
 

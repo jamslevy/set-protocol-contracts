@@ -210,7 +210,7 @@ export class RebalanceScenariosWrapper {
     for (let i = 0; i < this._rebalanceProgram.scenarioCount; i++) {
       this._currentIteration = i;
 
-      console.log(" ('------------- Running iteration: ", i, " -------------");
+      console.log("---------------------------- Running iteration: ", i, "----------------------------");
 
       // Update prices
       await this._updateOracles();
@@ -291,16 +291,16 @@ export class RebalanceScenariosWrapper {
       const rebalancingSetQuantity = currentSchedule[i].amount;
       const sender = this._accounts[currentSchedule[i].sender];
 
+      console.log(
+        `Issuing ${rebalancingSetQuantity} RBSet to ${sender} at iteration ${this._currentIteration}`
+      );
+
       await this._rebalancingWrapper.issueRebalancingSetFromBaseComponentsAsync(
         this._core,
         this._transferProxy.address,
         this._rebalancingSetToken.address,
         rebalancingSetQuantity,
         sender
-      );
-
-      console.log(
-        `Issuing ${rebalancingSetQuantity} RBSet to ${sender} at iteration ${this._currentIteration}`
       );
     }
   }
@@ -315,16 +315,16 @@ export class RebalanceScenariosWrapper {
       const rebalancingSetQuantity = currentSchedule[i].amount;
       const sender = this._accounts[currentSchedule[i].sender];
 
+      console.log(
+        `Redeeming ${rebalancingSetQuantity} RBSet to ${sender} at iteration ${this._currentIteration}`
+      );
+
       await this._rebalancingWrapper.redeemRebalancingSetToBaseComponentsAsync(
         this._core,
         this._transferProxy.address,
         this._rebalancingSetToken.address,
         rebalancingSetQuantity,
         sender
-      );
-
-      console.log(
-        `Redeeming ${rebalancingSetQuantity} RBSet to ${sender} at iteration ${this._currentIteration}`
       );
     }
   }
