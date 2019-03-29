@@ -30,12 +30,12 @@ import {
 
 import { RebalancingScenarioValidations } from './validations';
 
-import { DEPENDENCY } from '../../../deployments/deployedContractParameters';
+import { DEPENDENCY } from '@deployments/deployedContractParameters';
 
 import {
   findDependency,
   getContractAddress,
-} from '../../../deployments/utils/output-helper';
+} from '@deployments/utils/output-helper';
 
 import { CoreWrapper } from '@utils/wrappers/coreWrapper';
 import { ERC20Wrapper } from '@utils/wrappers/erc20Wrapper';

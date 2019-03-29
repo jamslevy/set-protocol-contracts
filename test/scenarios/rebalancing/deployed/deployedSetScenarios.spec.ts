@@ -10,13 +10,10 @@ import { BigNumberSetup } from '@utils/bigNumberSetup';
 import { Blockchain } from '@utils/blockchain';
 import { getWeb3 } from '@utils/web3Helper';
 
-import { getScenarioData } from './scenarioData';
 import { BITETH_BTC_DOMINANT } from './inputs';
 
 import {
   AssetScenario,
-  DataOutput,
-  FullRebalanceProgram,
 } from './types';
 
 import { RebalanceScenariosWrapper } from './deployedSetScenarioRunner';

@@ -1,3 +1,5 @@
+require('module-alias/register');
+
 import * as chai from 'chai';
 import { BigNumber } from 'bignumber.js';
 import { Address, Web3Utils } from 'set-protocol-utils';
@@ -24,17 +26,7 @@ import {
   WethMockContract,
 } from '@utils/contracts';
 
-import {
-  AssetScenario,
-  UserAccountData,
-  TokenBalances,
-  UserTokenBalances,
-  NewIssuanceTxn,
-  TokenPrices,
-  BidTxn,
-  SingleRebalanceCycleScenario,
-  FullRebalanceProgram,
-} from './types';
+import { AssetScenario } from './types';
 
 import { CoreWrapper } from '@utils/wrappers/coreWrapper';
 import { ERC20Wrapper } from '@utils/wrappers/erc20Wrapper';
@@ -44,7 +36,7 @@ import { RebalancingWrapper } from '@utils/wrappers/rebalancingWrapper';
 import {
   findDependency,
   getContractAddress,
-} from '../../../deployments/utils/output-helper';
+} from '@deployments/utils/output-helper';
 
 const blockchain = new Blockchain(web3);
 

@@ -1,12 +1,14 @@
+require('module-alias/register');
+
 import { BigNumber } from 'set-protocol-utils';
 import { ZERO } from '@utils/constants';
 
 import { AssetScenario } from './types';
-import CONSTANTS from './constants';
+import CONSTANTS from '../constants';
 
-import deploymentConstants from '../../../deployments/constants';
+import deploymentConstants from '../../../../deployments/constants';
 
-import { DEPLOYED_SETS_INFO, DEPENDENCY } from '../../../deployments/deployedContractParameters';
+import { DEPLOYED_SETS_INFO, DEPENDENCY } from '@deployments/deployedContractParameters';
 
 const BITETH_BTC_DOMINANT_CONFIG = DEPLOYED_SETS_INFO.BITETH_BTC_DOMINANT;
 

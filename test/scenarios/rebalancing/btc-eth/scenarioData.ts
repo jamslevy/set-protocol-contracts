@@ -1,6 +1,6 @@
 import { BigNumber } from 'set-protocol-utils';
 
-import CONSTANTS from './constants';
+import CONSTANTS from '../constants';
 
 import {
   BidTxn,
