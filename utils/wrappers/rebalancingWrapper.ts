@@ -275,8 +275,7 @@ export class RebalancingWrapper {
                                        .round(0, 3);
     const currentSetRequiredAmount = currentSetRequiredAmountUnrounded.sub(
       currentSetRequiredAmountUnrounded.modulo(baseSetNaturalUnit)
-    )
-    // .add(baseSetNaturalUnit);
+    );
 
     // console.log(
     //   "#redeemRebalancingSetToBaseComponentsAsync-1",
@@ -715,6 +714,16 @@ export class RebalancingWrapper {
   }
 
   /* ============ Rebalancing Token Manager ============ */
+
+  public async proposeOnManager(
+    managerAddress: Address,
+    rebalancingSetAddress: Address,
+    from: Address = this._tokenOwnerAddress
+  ): Promise<void> {
+    const instance = await BTCETHRebalancingManagerContract.at(managerAddress, web3, TX_DEFAULTS);
+
+    await instance.propose.sendTransactionAsync(rebalancingSetAddress, { from });
+  }
 
   public async deployBTCETHRebalancingManagerAsync(
     coreAddress: Address,

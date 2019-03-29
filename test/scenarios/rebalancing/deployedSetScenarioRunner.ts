@@ -72,6 +72,8 @@ export class RebalanceScenariosWrapper {
 
   private _deployedBaseSets: Address[];
 
+  private _managerAddress: Address;
+
   private _contractOwnerAddress: Address;
   private _coreWrapper: CoreWrapper;
   private _erc20Wrapper: ERC20Wrapper;
@@ -136,6 +138,8 @@ export class RebalanceScenariosWrapper {
       assetTwo,
       assetOneMedianizer,
       assetTwoMedianizer,
+      managerName,
+      rebalancingSetConfig,
     } = this._rebalanceProgram;
 
     const assetOneAddress = await findDependency(assetOne);
@@ -151,10 +155,23 @@ export class RebalanceScenariosWrapper {
     const assetOneMedianizerAddress = await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
     this._assetOneMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
     await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetOneMedianizer, this._contractOwnerAddress);
+    // TODO: Add IF statement if mediniazer is empty
+    await this._oracleWrapper.updateMedianizerPriceAsync(
+      this._assetOneMedianizer,
+      rebalancingSetConfig.initialAssetOnePrice,
+      SetTestUtils.generateTimestamp(1000),
+    );
 
     const assetTwoMedianizerAddress = await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
-    this._assetTwoMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
+    this._assetTwoMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetTwoMedianizerAddress);
     await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetTwoMedianizer, this._contractOwnerAddress);
+    await this._oracleWrapper.updateMedianizerPriceAsync(
+      this._assetTwoMedianizer,
+      rebalancingSetConfig.initialAssetTwoPrice,
+      SetTestUtils.generateTimestamp(1000),
+    );
+
+    this._managerAddress = await getContractAddress(managerName);
 
     await this._distributeComponentsAndSetRecipientApprovals();
 
@@ -226,14 +243,14 @@ export class RebalanceScenariosWrapper {
 
       console.log("Redeemed Rebalancing Sets", i);
 
-      // // Run Proposal (change prices) and transtion to rebalance
-      // await this._propose(scenario.priceUpdate);
+      // Run Proposal (change prices) and transtion to rebalance
+      await this.propose();
 
-      // console.log("Proposed:", i);
+      console.log("Proposed:", i);
 
-      // await this._transitionToRebalance();
+      await this.startRebalance();
 
-      // console.log("Transitioning to Rebalance:", i);
+      console.log("Started Rebalance", i);
 
       // // Run bidding program
       // await this._executeBiddingScheduleAsync(scenario.biddingSchedule, scenario.priceUpdate);
@@ -329,6 +346,28 @@ export class RebalanceScenariosWrapper {
     }
   }
 
+  private async propose(): Promise<void> {
+    // Fast forward the rebalance interval
+    await web3Utils.increaseTime(
+      this._rebalanceProgram.rebalancingSetConfig.rebalanceInterval.plus(1).toNumber()
+    );
+
+    console.log("Calling propose on instance:", this._currentIteration);
+
+    // Call propose from Rebalance Manager and log propose data
+    await this._rebalancingWrapper.proposeOnManager(this._managerAddress, this._rebalancingSetToken.address);
+  }
+
+  private async startRebalance(): Promise<void> {
+    await web3Utils.increaseTime(
+      this._rebalanceProgram.rebalancingSetConfig.proposalPeriod.plus(1).toNumber()
+    );
+
+    console.log("Starting rebalance", this._currentIteration);
+
+    await this._rebalancingSetToken.startRebalance.sendTransactionAsync();
+  }
+
   private async logState(): Promise<void> {
     // Log account balances of Set of issuers
     console.log('------------- Issuer Rebalancing Set Balances ------------- ');
@@ -340,7 +379,23 @@ export class RebalanceScenariosWrapper {
       console.log(issuerAddress, ': ', tokenBalance.toString());
     }
     
+    console.log('------------- Proposal ------------- ');
+    const nextSet = await this._rebalancingSetToken.nextSet.callAsync();
+    const auctionPriceParameters = await this._rebalancingSetToken.getAuctionPriceParameters.callAsync();
+    const auctionStartPrice = auctionPriceParameters[2];
+    const auctionPivotPrice = auctionPriceParameters[3];
+    const fairValue = auctionStartPrice.add(auctionPivotPrice).div(2).round(0, 3);
+
+    console.log("Next Set Address:", nextSet);
+    console.log("Auction Start Price: ", auctionStartPrice.toString());
+    console.log("Auction Pivot Price: ", auctionPivotPrice.toString());
+    console.log("Auction Fair Value: ", fairValue.toString());
+
+    console.log('------------- Start Rebalance ------------- ');
+    const biddingParameters = await this._rebalancingSetToken.getBiddingParameters.callAsync();
+    console.log("Minimum Bid", biddingParameters[0].toString());
+    console.log("Initial Remaining Sets", biddingParameters[1].toString());
 
     // Log account balances of components of bidders
-  }
+  }  
 }

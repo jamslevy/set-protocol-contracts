@@ -9,6 +9,7 @@ export interface AssetScenario {
   assetTwoMedianizer: string;
   rebalancingSetName: string;
   collateralSetName: string;
+  managerName: string;
   issuerAccounts: number[];
   bidderAccounts: number[];
   managerConfig: ManagerConfig;
