@@ -173,6 +173,8 @@ export class RebalanceScenariosWrapper {
 
     this._managerAddress = await getContractAddress(managerName);
 
+    this._rebalanceAuctionModule = await this._coreWrapper.getDeployedRebalanceAuctionModuleAsync();
+
     await this._distributeComponentsAndSetRecipientApprovals();
 
     // Issue Rebalancing Sets using _contractOwnerAddress tokens and distrubuted to owner group
@@ -366,6 +368,39 @@ export class RebalanceScenariosWrapper {
     console.log("Starting rebalance", this._currentIteration);
 
     await this._rebalancingSetToken.startRebalance.sendTransactionAsync();
+  }
+
+  private async executeBids(): Promise<void> {
+    const currentSchedule = this._rebalanceProgram.biddingSchedule[this._currentIteration];
+    const currentRemainingSets = await this._rebalancingSetToken.startingCurrentSetAmount.callAsync();
+
+    let previousTimeJump = 0;
+
+    for (let i = 0; i < currentSchedule.length; i++) {
+      const { sender, percentRemainingToBid, secondsFromFairValue } = currentSchedule[i];
+      const bidQuantity = await this._rebalancingWrapper.calculateCurrentSetBidQuantity(
+        currentRemainingSets,
+        percentRemainingToBid,
+      );
+
+      const auctionTimeToPivot = this._rebalanceProgram.managerConfig.auctionTimeToPivot;
+      const timeToFairValue = await this._rebalancingWrapper.getTimeToFairValue(auctionTimeToPivot);
+      const timeJump = timeToFairValue.plus(secondsFromFairValue).toNumber();
+
+      if (timeJump > previousTimeJump) {
+        await web3Utils.increaseTime(timeJump);
+        previousTimeJump = timeJump;
+      }
+
+      console.log(`Executing Bid of quantity ${bidQuantity.toString()} from ${sender}`);
+
+      await this._rebalanceAuctionModule.bidAndWithdraw.sendTransactionAsync(
+        this._rebalancingSetToken.address,
+        bidQuantity,
+        false,
+        { from: this._accounts[sender] }
+      );
+    }
   }
 
   private async logState(): Promise<void> {

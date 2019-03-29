@@ -1031,6 +1031,21 @@ export class RebalancingWrapper {
              .round(0, 3);
   }
 
+  /* ============ Bidding Convenience functions ============ */
+  public async getTimeToFairValue(
+    auctionTimeToPivot: BigNumber
+  ): Promise<BigNumber> {
+    return auctionTimeToPivot.div(2);
+  }
+
+  public async calculateCurrentSetBidQuantity(
+    currentRemainingSets: BigNumber,
+    percentToBid: number,
+  ): Promise<BigNumber> {
+    return currentRemainingSets.mul(percentToBid).div(100);
+  }
+
+
   /* ============ Set Token Convenience function ============ */
   public async getRebalancingSetInstance(
      rebalancingSetTokenAddress: Address,
