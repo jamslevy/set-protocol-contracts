@@ -7,7 +7,6 @@ import { FeedFactoryContract, MedianContract, PriceFeedContract } from '../contr
 import { getWeb3 } from '../web3Helper';
 import { FeedCreatedArgs } from '../contract_logs/oracle';
 import { TX_DEFAULTS } from '../../deployments/utils/blockchain';
-import { getContractAddress } from '../../deployments/utils/output-helper';
 
 const web3 = getWeb3();
 const FeedFactory = artifacts.require('FeedFactory');

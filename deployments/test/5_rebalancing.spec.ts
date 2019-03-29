@@ -78,7 +78,7 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wBTC medianizer address', async () => {
-      let wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
+      const wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
         dependencies.WBTC_MEDIANIZER[networkId] :
         await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
 
@@ -87,7 +87,7 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wETH medianizer address', async () => {
-      let wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
+      const wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
         dependencies.WETH_MEDIANIZER[networkId] :
         await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
 
@@ -320,7 +320,7 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wBTC medianizer address', async () => {
-      let wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
+      const wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
         dependencies.WBTC_MEDIANIZER[networkId] :
         await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
 
@@ -329,7 +329,7 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wETH medianizer address', async () => {
-      let wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
+      const wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
         dependencies.WETH_MEDIANIZER[networkId] :
         await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
 
@@ -561,7 +561,7 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wETH medianizer address', async () => {
-      let wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
+      const wETHMedianizerAddress = dependencies.WETH_MEDIANIZER[networkId] ?
         dependencies.WETH_MEDIANIZER[networkId] :
         await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
 
@@ -799,7 +799,7 @@ describe('Deployment: Rebalancing', () => {
     });
 
     it('rebalancing manager has correct wBTC medianizer address', async () => {
-      let wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
+      const wBTCMedianizerAddress = dependencies.WBTC_MEDIANIZER[networkId] ?
         dependencies.WBTC_MEDIANIZER[networkId] :
         await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
 

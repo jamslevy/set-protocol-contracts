@@ -101,35 +101,40 @@ export const BITETH_BTC_DOMINANT: AssetScenario  = {
   biddingSchedule: [
     [ // Month 1
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      {
+        sender: 4,
+        percentRemainingToBid: 51,
+        secondsFromFairValue: ZERO, // 51% is used to capture any remaining dust needed to complete
+                                    // the auction
+      },
     ],
     [ // Month 2
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(-3600) },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(-3600) },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: new BigNumber(-3600) },
     ],
     [ // Month 3
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: ZERO },
     ],
     [ // Month 4
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(3600) },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: new BigNumber(3600) },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: new BigNumber(3600) },
     ],
     [ // Month 5
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: ZERO },
     ],
     [ // Month 6
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: ZERO },
     ],
     [ // Month 7
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: ZERO },
     ],
     [ // Month 8
       { sender: 3, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
-      { sender: 4, percentRemainingToBid: 50, secondsFromFairValue: ZERO },
+      { sender: 4, percentRemainingToBid: 51, secondsFromFairValue: ZERO },
     ],
   ],
 };

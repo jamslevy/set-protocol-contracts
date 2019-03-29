@@ -234,7 +234,6 @@ export class RebalancingWrapper {
       ).add(baseSetNaturalUnit);
 
       const currentSetComponents = await currentSetInstance.getComponents.callAsync();
-      const componentInstances = await this._erc20Wrapper.retrieveTokenInstancesAsync(currentSetComponents);
 
       await core.issue.sendTransactionAsync(
         currentSetAddress,
@@ -1032,17 +1031,21 @@ export class RebalancingWrapper {
   }
 
   /* ============ Bidding Convenience functions ============ */
-  public async getTimeToFairValue(
+  public getTimeToFairValue(
     auctionTimeToPivot: BigNumber
-  ): Promise<BigNumber> {
+  ): BigNumber {
     return auctionTimeToPivot.div(2);
   }
 
   public async calculateCurrentSetBidQuantity(
-    currentRemainingSets: BigNumber,
+    startingCurrentSets: BigNumber,
     percentToBid: number,
+    minimumBid: BigNumber,
   ): Promise<BigNumber> {
-    return currentRemainingSets.mul(percentToBid).div(100);
+    const bidQuantity = startingCurrentSets.mul(percentToBid).div(100);
+    const normalizedQuantity = bidQuantity.div(minimumBid).round(0, 3).mul(minimumBid);
+
+    return normalizedQuantity;
   }
 
 
