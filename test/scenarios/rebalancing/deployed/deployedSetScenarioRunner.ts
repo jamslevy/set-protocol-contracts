@@ -7,7 +7,6 @@ import { BigNumber } from 'set-protocol-utils';
 import ChaiSetup from '@utils/chaiSetup';
 import { BigNumberSetup } from '@utils/bigNumberSetup';
 import {
-  BTCETHRebalancingManagerContract,
   CoreContract,
   MedianContract,
   RebalanceAuctionModuleContract,
@@ -69,7 +68,6 @@ export class RebalanceScenariosWrapper {
   private _transferProxy: TransferProxyContract;
   private _vault: VaultContract;
   private _rebalanceAuctionModule: RebalanceAuctionModuleContract;
-  private _btcethRebalancingManager: BTCETHRebalancingManagerContract;
   private _assetOneMedianizer: MedianContract;
   private _assetTwoMedianizer: MedianContract;
 
@@ -161,35 +159,23 @@ export class RebalanceScenariosWrapper {
     for (let i = 0; i < this._rebalanceProgram.scenarioCount; i++) {
       this._currentIteration = i;
 
-      console.log('---------------------------- Running iteration: ', i, '----------------------------');
+      console.log('\n\n---------------------------- Running iteration: ', i, '----------------------------\n\n');
 
       // Update prices
       await this._updateOracles();
 
-      console.log('Updated oracles');
-
       // Issue and Redeem Sets
       await this.issueRebalancingSets();
 
-      console.log('Issued Rebalancing Sets');
-
       await this.redeemRebalancingSets();
-
-      console.log('Redeemed Rebalancing Sets');
 
       // Run Proposal (change prices) and transtion to rebalance
       await this.propose();
 
-      console.log('Proposed:');
-
       await this.startRebalance();
-
-      console.log('Started Rebalance');
 
       // Run bidding program
       await this.executeBids();
-
-      console.log('Executed Bids');
 
       // Finish rebalance cycle
       await this.settleRebalance();
@@ -233,6 +219,8 @@ export class RebalanceScenariosWrapper {
 
   private async mintInitialSets(): Promise<void> {
     const { rebalancingSetConfig } = this._rebalanceProgram;
+
+    console.log('\n\n---------------------------- Initialization ----------------------------\n\n');
 
     await this.issueRebalancingSets(rebalancingSetConfig.initialSetIssuances);
   }
@@ -332,14 +320,31 @@ export class RebalanceScenariosWrapper {
     // Call propose from Rebalance Manager and log propose data
     await this._rebalancingWrapper.proposeOnManager(this._managerAddress, this._rebalancingSetToken.address);
 
-    console.log('------------- Proposal ------------- ');
+    console.log('\n------------- Proposal ------------- ');
+    const currentSet = await this._rebalancingSetToken.currentSet.callAsync();
+    const currentSetInstance = await this._coreWrapper.getSetInstance(currentSet);
+    const [currentSetAssetOneUnit, currentSetAssetTwoUnit] = await currentSetInstance.getUnits.callAsync();
+    const currentSetNaturalUnit = await currentSetInstance.naturalUnit.callAsync();
+
     const nextSet = await this._rebalancingSetToken.nextSet.callAsync();
+    const nextSetInstance = await this._coreWrapper.getSetInstance(nextSet);
+    const [nextSetAssetOneUnit, nextSetAssetTwoUnit] = await nextSetInstance.getUnits.callAsync();
+    const nextSetNaturalUnit = await nextSetInstance.naturalUnit.callAsync();
+
     const auctionPriceParameters = await this._rebalancingSetToken.getAuctionPriceParameters.callAsync();
     const auctionStartPrice = auctionPriceParameters[2];
     const auctionPivotPrice = auctionPriceParameters[3];
     const fairValue = auctionStartPrice.add(auctionPivotPrice).div(2).round(0, 3);
 
+    console.log('Current Set Address:', currentSet);
+    console.log('Current Set: Asset One Unit', currentSetAssetOneUnit.toString());
+    console.log('Current Set: Asset Two Unit', currentSetAssetTwoUnit.toString());
+    console.log('Current Set: Natural Unit', currentSetNaturalUnit.toString());
+
     console.log('Next Set Address:', nextSet);
+    console.log('Next Set: Asset One Unit', nextSetAssetOneUnit.toString());
+    console.log('Next Set: Asset Two Unit', nextSetAssetTwoUnit.toString());
+    console.log('Next Set: Natural Unit', nextSetNaturalUnit.toString());
     console.log('Auction Start Price: ', auctionStartPrice.toString());
     console.log('Auction Pivot Price: ', auctionPivotPrice.toString());
     console.log('Auction Fair Value: ', fairValue.toString());
@@ -354,7 +359,7 @@ export class RebalanceScenariosWrapper {
 
     await this._rebalancingSetToken.startRebalance.sendTransactionAsync();
 
-    console.log('------------- Start Rebalance ------------- ');
+    console.log('\n------------- Start Rebalance ------------- ');
     const biddingParameters = await this._rebalancingSetToken.getBiddingParameters.callAsync();
     console.log('Minimum Bid', biddingParameters[0].toString());
     console.log('Initial Remaining Sets', biddingParameters[1].toString());
@@ -413,7 +418,7 @@ export class RebalanceScenariosWrapper {
     const iteration = this._currentIteration;
 
     // Log account balances of Set of issuers
-    console.log('------------- Issuer Rebalancing Set Balances ------------- ');
+    console.log('\n------------- Issuer Rebalancing Set Balances ------------- ');
     const issuers = this._rebalanceProgram.issuerAccounts;
     for (let i = 0; i < issuers.length; i++) {
       const issuerAddress = this._accounts[issuers[i]];
@@ -444,8 +449,8 @@ export class RebalanceScenariosWrapper {
                             .div(CONSTANTS.PRICE_FEED_TRUNCATION)
                             .div(CONSTANTS[assetTwoName].FULL_UNIT);
 
-    console.log('Asset One Value', assetOneValue.toString());
-    console.log('Asset Two Value', assetTwoValue.toString());
-    console.log('Total Value', assetOneValue.add(assetTwoValue).toString());
+    console.log('Asset One Value', assetOneValue.round(0, 3).toString());
+    console.log('Asset Two Value', assetTwoValue.round(0, 3).toString());
+    console.log('Total Value', assetOneValue.add(assetTwoValue).round(0, 3).toString());
   }
 }

@@ -233,8 +233,6 @@ export class RebalancingWrapper {
         currentSetRequiredAmountUnrounded.modulo(baseSetNaturalUnit)
       ).add(baseSetNaturalUnit);
 
-      const currentSetComponents = await currentSetInstance.getComponents.callAsync();
-
       await core.issue.sendTransactionAsync(
         currentSetAddress,
         currentSetRequiredAmount,
