@@ -2,7 +2,7 @@ require('module-alias/register');
 
 import * as chai from 'chai';
 import { BigNumber } from 'bignumber.js';
-import { Address, Web3Utils } from 'set-protocol-utils';
+import { Address } from 'set-protocol-utils';
 
 import ChaiSetup from '@utils/chaiSetup';
 import { Blockchain } from '@utils/blockchain';
@@ -10,20 +10,11 @@ ChaiSetup.configure();
 const { expect } = chai;
 
 import {
-  BTCETHRebalancingManagerContract,
   CoreContract,
-  LinearAuctionPriceCurveContract,
-  MedianContract,
-  RebalanceAuctionModuleContract,
   RebalancingSetTokenContract,
-  RebalancingSetTokenFactoryContract,
-  SetTokenContract,
-  SetTokenFactoryContract,
   StandardTokenMockContract,
   TransferProxyContract,
   VaultContract,
-  WhiteListContract,
-  WethMockContract,
 } from '@utils/contracts';
 
 import { AssetScenario } from './types';
@@ -41,86 +32,81 @@ import {
 const blockchain = new Blockchain(web3);
 
 export class RebalancingScenarioValidations {
- 	private _accounts: Address[];
-  	private _rebalanceProgram: AssetScenario;
+    private _accounts: Address[];
+    private _rebalanceProgram: AssetScenario;
 
-	private _contractOwnerAddress: Address;
-	private _coreWrapper: CoreWrapper;
-	private _erc20Wrapper: ERC20Wrapper;
-	private _oracleWrapper: OracleWrapper;
-	private _rebalancingWrapper: RebalancingWrapper;
-  	
-  	private _rebalancingSetToken: RebalancingSetTokenContract;
-  	private _assetOne: StandardTokenMockContract;
-  	private _assetTwo: StandardTokenMockContract;
+    private _contractOwnerAddress: Address;
+    private _coreWrapper: CoreWrapper;
+    private _erc20Wrapper: ERC20Wrapper;
+    private _oracleWrapper: OracleWrapper;
+    private _rebalancingWrapper: RebalancingWrapper;
 
-	private _core: CoreContract;
-  	private _transferProxy: TransferProxyContract;
-  	private _vault: VaultContract;
+	private _rebalancingSetToken: RebalancingSetTokenContract;
+	private _assetOne: StandardTokenMockContract;
+	private _assetTwo: StandardTokenMockContract;
 
-	constructor(accounts: Address[], rebalanceProgram: AssetScenario) {
-    	this._contractOwnerAddress = accounts[0];
-	    this._rebalanceProgram = rebalanceProgram;
-	    this._accounts = accounts;
+  private _core: CoreContract;
+    private _transferProxy: TransferProxyContract;
+    private _vault: VaultContract;
 
-	    this._coreWrapper = new CoreWrapper(this._contractOwnerAddress, this._contractOwnerAddress);
-	    this._erc20Wrapper = new ERC20Wrapper(this._contractOwnerAddress);
-	    this._rebalancingWrapper = new RebalancingWrapper(
-	      this._contractOwnerAddress,
-	      this._coreWrapper,
-	      this._erc20Wrapper,
-	      blockchain
-	    );
-	    this._oracleWrapper = new OracleWrapper(this._contractOwnerAddress);
-	}
+  constructor(accounts: Address[], rebalanceProgram: AssetScenario) {
+      this._contractOwnerAddress = accounts[0];
+      this._rebalanceProgram = rebalanceProgram;
+      this._accounts = accounts;
 
-	public async initialize(): Promise<void> {
-		this._core = await this._coreWrapper.getDeployedCoreAsync();
-	    this._transferProxy = await this._coreWrapper.getDeployedTransferProxyAsync();
-	    this._vault = await this._coreWrapper.getDeployedVaultAsync();
+      this._coreWrapper = new CoreWrapper(this._contractOwnerAddress, this._contractOwnerAddress);
+      this._erc20Wrapper = new ERC20Wrapper(this._contractOwnerAddress);
+      this._rebalancingWrapper = new RebalancingWrapper(
+        this._contractOwnerAddress,
+        this._coreWrapper,
+        this._erc20Wrapper,
+        blockchain
+      );
+      this._oracleWrapper = new OracleWrapper(this._contractOwnerAddress);
+  }
 
-		const {
-	      rebalancingSetName,
-	      collateralSetName,
-	      assetOne,
-	      assetTwo,
-	    } = this._rebalanceProgram;
+  public async initialize(): Promise<void> {
+    this._core = await this._coreWrapper.getDeployedCoreAsync();
+      this._transferProxy = await this._coreWrapper.getDeployedTransferProxyAsync();
+      this._vault = await this._coreWrapper.getDeployedVaultAsync();
 
-	    const assetOneAddress = await findDependency(assetOne);
-	    const assetTwoAddress = await findDependency(assetTwo);
-	    const components = await this._erc20Wrapper.retrieveTokenInstancesAsync([assetOneAddress, assetTwoAddress]);
-	    this._assetOne = components[0];    
-	    this._assetTwo = components[1];
-	    
-	    const rebalancingSetAddress = await getContractAddress(rebalancingSetName);
-	    this._rebalancingSetToken = await this._rebalancingWrapper.getRebalancingSetInstance(rebalancingSetAddress);
-	}
+    const {
+        rebalancingSetName,
+        assetOne,
+        assetTwo,
+      } = this._rebalanceProgram;
 
-	public async validateInitialState(): Promise<void>{
-		const { rebalancingSetConfig } = this._rebalanceProgram;
+      const assetOneAddress = await findDependency(assetOne);
+      const assetTwoAddress = await findDependency(assetTwo);
+      const components = await this._erc20Wrapper.retrieveTokenInstancesAsync([assetOneAddress, assetTwoAddress]);
+      this._assetOne = components[0];
+      this._assetTwo = components[1];
 
-		// Mints the correct amount of Set for the issuers
-		const initialIssuances = rebalancingSetConfig.initialSetIssuances;
-		for (let i = 0; i < initialIssuances.length; i++) {
-	      // Rebalancing Set Quantity
-	      const rebalancingSetQuantity = initialIssuances[i].amount;
-	      const issuer = this._accounts[initialIssuances[i].sender];
+      const rebalancingSetAddress = await getContractAddress(rebalancingSetName);
+      this._rebalancingSetToken = await this._rebalancingWrapper.getRebalancingSetInstance(rebalancingSetAddress);
+  }
 
-	      await this.assertRebalancingSetBalance(rebalancingSetQuantity, issuer);
-	    }
-	}
+  public async validateInitialState(): Promise<void> {
+    const { rebalancingSetConfig } = this._rebalanceProgram;
 
-	public async assertRebalancingSetBalance(
-		amount: BigNumber,
-		account: string,
-	): Promise<void> {
-	  const tokenBalance = await this._rebalancingSetToken.balanceOf.callAsync(account);
-	  await expect(tokenBalance).to.be.bignumber.equal(amount);		
-	}
+    // Mints the correct amount of Set for the issuers
+    const initialIssuances = rebalancingSetConfig.initialSetIssuances;
+    for (let i = 0; i < initialIssuances.length; i++) {
+        // Rebalancing Set Quantity
+        const rebalancingSetQuantity = initialIssuances[i].amount;
+        const issuer = this._accounts[initialIssuances[i].sender];
 
-	public async assertPreRebalanceState(): Promise<void> {
-		// Oracles are updated properly
-	}
+        await this.assertRebalancingSetBalance(rebalancingSetQuantity, issuer);
+      }
+  }
+
+  public async assertRebalancingSetBalance(
+    amount: BigNumber,
+    account: string,
+  ): Promise<void> {
+    const tokenBalance = await this._rebalancingSetToken.balanceOf.callAsync(account);
+    await expect(tokenBalance).to.be.bignumber.equal(amount);
+  }
 }
 
 
