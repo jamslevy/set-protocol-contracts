@@ -1,7 +1,6 @@
 require('module-alias/register');
 
 import * as _ from 'lodash';
-import * as setProtocolUtils from 'set-protocol-utils';
 import { Address, Web3Utils } from 'set-protocol-utils';
 import { BigNumber } from 'set-protocol-utils';
 
@@ -13,15 +12,14 @@ import {
   MedianContract,
   RebalanceAuctionModuleContract,
   RebalancingSetTokenContract,
-  RebalancingSetTokenFactoryContract,
-  SetTokenFactoryContract,
   StandardTokenMockContract,
   TransferProxyContract,
   VaultContract,
-  WhiteListContract,
 } from '@utils/contracts';
 import { Blockchain } from '@utils/blockchain';
 import { getWeb3 } from '@utils/web3Helper';
+
+import CONSTANTS from '../constants';
 
 import {
   AssetScenario,
@@ -30,7 +28,6 @@ import {
 
 import { RebalancingScenarioValidations } from './validations';
 
-import { DEPENDENCY } from '@deployments/deployedContractParameters';
 
 import {
   findDependency,
@@ -72,13 +69,9 @@ export class RebalanceScenariosWrapper {
   private _transferProxy: TransferProxyContract;
   private _vault: VaultContract;
   private _rebalanceAuctionModule: RebalanceAuctionModuleContract;
-  private _rebalancingComponentWhiteList: WhiteListContract;
-  private _rebalancingFactory: RebalancingSetTokenFactoryContract;
   private _btcethRebalancingManager: BTCETHRebalancingManagerContract;
   private _assetOneMedianizer: MedianContract;
   private _assetTwoMedianizer: MedianContract;
-
-  private rebalancingSetAddress: Address;
 
   constructor(accounts: Address[], rebalanceProgram: AssetScenario) {
     this._contractOwnerAddress = accounts[0];
@@ -112,7 +105,6 @@ export class RebalanceScenariosWrapper {
 
     const {
       rebalancingSetName,
-      collateralSetName,
       assetOne,
       assetTwo,
       assetOneMedianizer,
@@ -130,7 +122,7 @@ export class RebalanceScenariosWrapper {
     const rebalancingSetAddress = await getContractAddress(rebalancingSetName);
     this._rebalancingSetToken = await this._rebalancingWrapper.getRebalancingSetInstance(rebalancingSetAddress);
 
-    const assetOneMedianizerAddress = await getContractAddress(DEPENDENCY.WBTC_MEDIANIZER);
+    const assetOneMedianizerAddress = await getContractAddress(assetOneMedianizer);
     this._assetOneMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
     await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetOneMedianizer, this._contractOwnerAddress);
     // TODO: Add IF statement if mediniazer is empty
@@ -143,7 +135,7 @@ export class RebalanceScenariosWrapper {
       latestBlockTimestamp,
     );
 
-    const assetTwoMedianizerAddress = await getContractAddress(DEPENDENCY.WETH_MEDIANIZER);
+    const assetTwoMedianizerAddress = await getContractAddress(assetTwoMedianizer);
     this._assetTwoMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetTwoMedianizerAddress);
     await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetTwoMedianizer, this._contractOwnerAddress);
     await this._oracleWrapper.updateMedianizerPriceAsync(
@@ -244,8 +236,6 @@ export class RebalanceScenariosWrapper {
 
     await this.issueRebalancingSets(rebalancingSetConfig.initialSetIssuances);
   }
-
-
 
   public async _updateOracles(): Promise<void> {
     const { priceSchedule } = this._rebalanceProgram;
@@ -413,19 +403,6 @@ export class RebalanceScenariosWrapper {
         { from: this._accounts[sender] }
       );
     }
-
-    // Handle any small remaining Sets
-    // const [, remainingCurrentSets] = await this._rebalancingSetToken.getBiddingParameters.callAsync();
-    // if (remainingCurrentSets.gt(minimumBid)) {
-    //   const bidQuantity = remainingCurrentSets.div(minimumBid).round(0, 3).mul(minimumBid);
-
-    //   await this._rebalanceAuctionModule.bidAndWithdraw.sendTransactionAsync(
-    //     this._rebalancingSetToken.address,
-    //     bidQuantity,
-    //     true,
-    //     { from: this._contractOwnerAddress }
-    //   );
-    // }
   }
 
   private async settleRebalance(): Promise<void> {
@@ -433,6 +410,8 @@ export class RebalanceScenariosWrapper {
   }
 
   private async logState(): Promise<void> {
+    const iteration = this._currentIteration;
+
     // Log account balances of Set of issuers
     console.log('------------- Issuer Rebalancing Set Balances ------------- ');
     const issuers = this._rebalanceProgram.issuerAccounts;
@@ -443,6 +422,30 @@ export class RebalanceScenariosWrapper {
       console.log(issuerAddress, ': ', tokenBalance.toString());
     }
 
-    // Log account balances of components of bidders
+    // Log component vault balances
+    console.log('------------- Vault Balances ------------- ');
+    const [assetOneVaultBalance, assetTwoVaultBalance] = await this._erc20Wrapper.getTokenBalances(
+      [this._assetOne, this._assetTwo],
+      this._vault.address
+    );
+    console.log('Asset One Vault Balance:', assetOneVaultBalance.toString());
+    console.log('Asset Two Vault Balance:', assetTwoVaultBalance.toString());
+
+    console.log('------------- Vault Value ------------- ');
+    const assetOneName = this._rebalanceProgram.assetOne;
+    const assetTwoName = this._rebalanceProgram.assetTwo;
+    const {assetOne, assetTwo} = this._rebalanceProgram.priceSchedule;
+    const assetOneValue = assetOneVaultBalance
+                            .mul(assetOne[iteration])
+                            .div(CONSTANTS.PRICE_FEED_TRUNCATION)
+                            .div(CONSTANTS[assetOneName].FULL_UNIT);
+    const assetTwoValue = assetTwoVaultBalance
+                            .mul(assetTwo[iteration])
+                            .div(CONSTANTS.PRICE_FEED_TRUNCATION)
+                            .div(CONSTANTS[assetTwoName].FULL_UNIT);
+
+    console.log('Asset One Value', assetOneValue.toString());
+    console.log('Asset Two Value', assetTwoValue.toString());
+    console.log('Total Value', assetOneValue.add(assetTwoValue).toString());
   }
 }

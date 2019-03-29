@@ -3,7 +3,6 @@ require('module-alias/register');
 import * as chai from 'chai';
 import * as _ from 'lodash';
 import * as ABIDecoder from 'abi-decoder';
-import { BigNumber } from 'set-protocol-utils';
 
 import ChaiSetup from '@utils/chaiSetup';
 import { BigNumberSetup } from '@utils/bigNumberSetup';
@@ -48,8 +47,6 @@ contract('Deployed Set Scenarios', accounts => {
   beforeEach(async () => {
     await blockchain.saveSnapshotAsync();
 
-    scenarioData = BITETH_BTC_DOMINANT;
-
     rebalanceScenariosWrapper = new RebalanceScenariosWrapper(accounts, scenarioData);
   });
 
@@ -62,9 +59,13 @@ contract('Deployed Set Scenarios', accounts => {
   }
 
   describe('BTCETH_BTC_DOMINANT', async () => {
+    before(async () => {
+      scenarioData = BITETH_BTC_DOMINANT;
+    });
+
     it('works', async () => {
       await subject();
-    }); 
+    });
   });
 
 

@@ -276,12 +276,6 @@ export class RebalancingWrapper {
       currentSetRequiredAmountUnrounded.modulo(baseSetNaturalUnit)
     );
 
-    // console.log(
-    //   "#redeemRebalancingSetToBaseComponentsAsync-1",
-    //   rebalancingSet.address,
-    //   rebalancingSetQuantity.toString()
-    // );
-
     await core.redeemAndWithdrawTo.sendTransactionAsync(
       rebalancingSet.address,
       from,
@@ -289,19 +283,6 @@ export class RebalancingWrapper {
       new BigNumber(0),
       { from },
     );
-
-    // console.log(
-    //   "#redeemRebalancingSetToBaseComponentsAsync-2",
-    //   currentSetAddress,
-    //   currentSetRequiredAmount.toString(),
-    // );
-
-    // const userBalance = await currentSetInstance.balanceOf.callAsync(from);
-    // console.log(
-    //   "User balance",
-    //   userBalance.toString(),
-    //   currentSetRequiredAmount.sub(userBalance).toString()
-    // );
 
     await core.redeemAndWithdrawTo.sendTransactionAsync(
       currentSetAddress,
