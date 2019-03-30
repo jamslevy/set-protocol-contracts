@@ -24,8 +24,8 @@ export default {
   TIME_TO_PIVOT: new BigNumber(SECONDS_PER_DAY),
 
   // MANAGER
-    DEFAULT_COLLATERAL_NATURAL_UNIT: new BigNumber(10 ** 10),
-    WETH_DOMINANT_COLLATERAL_NATURAL_UNIT: new BigNumber(10 ** 12),
+  DEFAULT_COLLATERAL_NATURAL_UNIT: new BigNumber(10 ** 10),
+  WETH_DOMINANT_COLLATERAL_NATURAL_UNIT: new BigNumber(10 ** 12),
   // ASSET
   WBTC: {
     DECIMALS: 8,
@@ -38,4 +38,8 @@ export default {
     FULL_UNIT: new BigNumber(10 ** 18),
     INITIAL_FEED_PRICE: new BigNumber(1.28).mul(10 ** 20),
   },
+  DAI: {
+    DECIMALS: 18,
+    FULL_UNIT: new BigNumber(10 ** 18),
+  }
 };

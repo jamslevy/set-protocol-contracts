@@ -9,7 +9,7 @@ import { BigNumberSetup } from '@utils/bigNumberSetup';
 import { Blockchain } from '@utils/blockchain';
 import { getWeb3 } from '@utils/web3Helper';
 
-import { BITETH_BTC_DOMINANT } from './inputs';
+import { BITETH_BTC_DOMINANT, BITETH_ETH_DOMINANT, BTCDAI_BTD } from './inputs';
 
 import {
   AssetScenario,
@@ -68,5 +68,24 @@ contract('Deployed Set Scenarios', accounts => {
     });
   });
 
+  describe('BITETH_ETH_DOMINANT', async () => {
+    before(async () => {
+      scenarioData = BITETH_ETH_DOMINANT;
+    });
+
+    it('works', async () => {
+      await subject();
+    });
+  });
+
+  describe('BTCDAI_BTD', async () => {
+    before(async () => {
+      scenarioData = BTCDAI_BTD;
+    });
+
+    it('works', async () => {
+      await subject();
+    });
+  });
 
 });

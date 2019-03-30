@@ -120,27 +120,39 @@ export class RebalanceScenariosWrapper {
     const rebalancingSetAddress = await getContractAddress(rebalancingSetName);
     this._rebalancingSetToken = await this._rebalancingWrapper.getRebalancingSetInstance(rebalancingSetAddress);
 
-    const assetOneMedianizerAddress = await getContractAddress(assetOneMedianizer);
-    this._assetOneMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
-    await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetOneMedianizer, this._contractOwnerAddress);
-    // TODO: Add IF statement if mediniazer is empty
     const latestBlock = await web3.eth.getBlock('latest');
     const latestBlockTimestamp = new BigNumber(latestBlock.timestamp);
 
-    await this._oracleWrapper.updateMedianizerPriceAsync(
-      this._assetOneMedianizer,
-      rebalancingSetConfig.initialAssetOnePrice,
-      latestBlockTimestamp,
-    );
+    if (assetOneMedianizer) {
+      const assetOneMedianizerAddress = await getContractAddress(assetOneMedianizer);
+      this._assetOneMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetOneMedianizerAddress);
+      await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetOneMedianizer, this._contractOwnerAddress);  
 
-    const assetTwoMedianizerAddress = await getContractAddress(assetTwoMedianizer);
-    this._assetTwoMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetTwoMedianizerAddress);
-    await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetTwoMedianizer, this._contractOwnerAddress);
-    await this._oracleWrapper.updateMedianizerPriceAsync(
-      this._assetTwoMedianizer,
-      rebalancingSetConfig.initialAssetTwoPrice,
-      latestBlockTimestamp,
-    );
+      await this._oracleWrapper.updateMedianizerPriceAsync(
+        this._assetOneMedianizer,
+        rebalancingSetConfig.initialAssetOnePrice,
+        latestBlockTimestamp,
+      );
+
+      console.log(
+        `Updating Oracle 1 to ${rebalancingSetConfig.initialAssetOnePrice} during initialization`
+      );
+    }
+
+    if (assetTwoMedianizer) {
+      const assetTwoMedianizerAddress = await getContractAddress(assetTwoMedianizer);
+      this._assetTwoMedianizer = await this._oracleWrapper.getDeployedMedianizerAsync(assetTwoMedianizerAddress);
+      await this._oracleWrapper.addPriceFeedOwnerToMedianizer(this._assetTwoMedianizer, this._contractOwnerAddress);
+      await this._oracleWrapper.updateMedianizerPriceAsync(
+        this._assetTwoMedianizer,
+        rebalancingSetConfig.initialAssetTwoPrice,
+        latestBlockTimestamp,
+      );
+
+      console.log(
+        `Updating Oracle 2 to ${rebalancingSetConfig.initialAssetTwoPrice} during initialization`
+      );
+    }
 
     this._managerAddress = await getContractAddress(managerName);
 
